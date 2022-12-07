@@ -1,0 +1,8 @@
+Modified_LED-Molecular/Data
+Modified_LED-Molecular/Results
+core
+*.top
+*.lock
+*.xyz
+.vscode/
+.DS_Store
