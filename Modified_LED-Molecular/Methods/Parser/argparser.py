@@ -512,6 +512,14 @@ def getLEDParser(parser):
         type=int,
         default=0,
         required=False)
+    
+    parser.add_argument(
+        "--gpu_monitor_every",
+        help=
+        "delay time to call GPUtil",
+        type=int,
+        default=0,
+        required=False)
 
     return parser
 

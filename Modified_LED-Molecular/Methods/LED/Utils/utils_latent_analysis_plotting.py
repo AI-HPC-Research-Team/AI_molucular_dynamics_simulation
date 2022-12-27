@@ -626,9 +626,10 @@ def plotLatentDynamicsFreeEnergy(model, results, set_name, testing_mode):
         # plt.close()
 
         latent_states_flatten = results["latent_states_flatten"]
+       
+        # makeFreeEnergyPlot(model, testing_mode, set_name,
+        #                 latent_states_flatten, gridpoints=15)
 
-        makeFreeEnergyPlot(model, testing_mode, set_name,
-                           latent_states_flatten)
         makejointDistributionPlot(model, testing_mode, set_name,
                                   latent_states_flatten)
 
@@ -660,7 +661,7 @@ def makeFreeEnergyPlot(
     # covariance_factor_scaley     = 40.0
     # gridpoints                    = 20
 
-    margin_density = 0.1
+    margin_density = 0.0
 
     if data_bounds is None:
         boundsx = [datax.min(), datax.max()]
@@ -792,8 +793,10 @@ def makeFreeEnergyPlot(
     axfirst.spines['right'].set_visible(False)
     axfirst.spines['top'].set_visible(False)
     # axfirst.spines['bottom'].set_visible(False)
-    # axfirst.get_xaxis().set_visible(False)
-    if freenergyx_max is None: freenergyx_max = 1.1 * np.max(freenergyx)
+    # axfirst.get_xaxis().set_v
+    if freenergyx_max is None: 
+        print(freenergyx)
+        freenergyx_max = 1.1 * np.max(freenergyx)
     axfirst.set_ylim([0, freenergyx_max])
     # axfirst.set_ylim(ymin=0)
     # axfirst.axis('off')
@@ -808,7 +811,9 @@ def makeFreeEnergyPlot(
     axsecond.spines['top'].set_visible(False)
     # axsecond.spines['left'].set_visible(False)
     # axsecond.get_yaxis().set_visible(False)
-    if freenergyy_max is None: freenergyy_max = 1.1 * np.max(freenergyy)
+    if freenergyy_max is None: 
+        print(freenergyy)
+        freenergyy_max = 1.1 * np.max(freenergyy)
     axsecond.set_xlim([0, freenergyy_max])
     # axsecond.set_xlim(xmin=0)
     # axsecond.axis('off')

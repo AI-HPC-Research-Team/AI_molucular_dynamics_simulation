@@ -7,6 +7,7 @@
 # TORCH
 import torch
 import sys
+from tqdm import tqdm
 print("MODEL: MD-ARNN")
 print("-V- Python Version = {:}".format(sys.version))
 print("-V- Torch Version = {:}".format(torch.__version__))
@@ -835,9 +836,12 @@ class md_arnn():
                 is_perm_inv,
                 MDN_dist,
             )
-
-            loss = MDN_loss_fn(target, pi, MDN_var1, MDN_var2, MDN_var3,
-                               MDN_var4)
+            try:
+                loss = MDN_loss_fn(target, pi, MDN_var1, MDN_var2, MDN_var3,
+                                MDN_var4)
+            except:
+                print('target:', target)
+                print('output:', output)
             return loss
 
     def repeatAlongDim(self, var, axis, repeat_times, interleave=False):
@@ -857,11 +861,11 @@ class md_arnn():
 
         losses_vec = []
 
-        assert (
-            T
-        ) % self.sequence_length == 0, "The time-steps in the sequence need to be divisible by the sequence_length ((T-1) % self.sequence_length) == 0, -> {:} % {:} ==0".format(
-            T , self.sequence_length)
-        num_propagations = int((T ) / self.sequence_length)
+        # assert (
+        #     T - 1
+        # ) % self.sequence_length == 0, "The time-steps in the sequence need to be divisible by the sequence_length ((T-1) % self.sequence_length) == 0, -> {:} % {:} ==0".format(
+        #     T - 1, self.sequence_length)
+        num_propagations = int((T -1) / self.sequence_length)
         # print("num_propagations")
         # print(num_propagations)
 
@@ -1061,7 +1065,7 @@ class md_arnn():
                     MDN_kernels = False
                     MDN_loss_fn = None
                     MDN_dist = None
-
+                
                 loss_auto_fwd = self.getLoss(
                     input_batch_decoded,
                     input_batch,
@@ -1157,12 +1161,17 @@ class md_arnn():
         epoch_losses_vec = []
         iterative_forecasting_prob_vec = []
         # print("# trainEpoch() #")
+        bacth_count = 0
         for batch_of_sequences in data_loader:
             # K, T, C, Dx, Dy
             losses, iterative_forecasting_prob = self.trainOnBatch(
                 batch_of_sequences, is_train=is_train)
             epoch_losses_vec.append(losses)
             iterative_forecasting_prob_vec.append(iterative_forecasting_prob)
+            bacth_count += 1
+            # if bacth_count % 20 == 0:
+                
+            print(losses)
         epoch_losses = np.mean(np.array(epoch_losses_vec), axis=0)
         iterative_forecasting_prob = np.mean(
             np.array(iterative_forecasting_prob_vec), axis=0)
@@ -1772,7 +1781,7 @@ class md_arnn():
         # Dictionary of error lists
         error_dict = utils.getErrorLabelsDict(self)
 
-        for input_sequence in data_loader:
+        for input_sequence in tqdm(data_loader):
             if num_seqs_tested_on > num_test_ICS: break
             if self.display_output:
                 print("IC {:}/{:}, {:2.3f}%".format(

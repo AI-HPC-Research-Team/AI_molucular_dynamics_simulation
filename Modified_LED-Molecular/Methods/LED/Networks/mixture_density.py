@@ -103,17 +103,23 @@ class MixtureDensityNetwork(nn.Module):
                 raise ValueError("Invalid weight sharing variable {:}.".format(
                     self.weight_sharing))
         elif self.dist == "alanine":
-            # self.output_dim_normal = 9
-            # self.output_dim_von_mishes = 15
-            self.defineAlanineVars()
-            self.output_dim_normal = 23
-            self.output_dim_von_mishes = 12
+            #     self.output_dim_normal = 9
+            #     self.output_dim_von_mishes = 15
+            #     self.defineAlanineVars()
+            #     self.all_kernels_output_dim_normal = self.output_dim_normal * n_kernels
+            #     self.all_kernels_output_dim_von_mises = self.output_dim_von_mishes * n_kernels
+            # elif self.dist == "AA":
+            # self.output_dim_normal = 23
+            # self.output_dim_von_mishes = 12
+            self.output_dim_normal = 20
+            self.output_dim_von_mishes = 10
+            self.defineAlanineVars()    
             self.all_kernels_output_dim_normal = self.output_dim_normal * n_kernels
             self.all_kernels_output_dim_von_mises = self.output_dim_von_mishes * n_kernels
         elif self.dist == "trp":
             self.defineTRPVars()
-            self.output_dim_normal = 153 + 152
-            self.output_dim_von_mishes = 151
+            self.output_dim_normal = 160 + 219 # jinraol
+            self.output_dim_von_mishes = 270 # jinraol
             self.all_kernels_output_dim_normal = self.output_dim_normal * n_kernels
             self.all_kernels_output_dim_von_mises = self.output_dim_von_mishes * n_kernels
         else:
@@ -123,7 +129,7 @@ class MixtureDensityNetwork(nn.Module):
             self.buildGaussianMDN()
         elif self.dist == "normal" and self.multivariate:
             self.buildMultivariateGaussianMDN()
-        elif self.dist in ["alanine", "trp"]:
+        elif self.dist in ["alanine", "trp", 'AA']:
             self.buildBADMDN()
         else:
             raise ValueError("Unknown distribution in MDN.")
@@ -308,7 +314,7 @@ class MixtureDensityNetwork(nn.Module):
             return self.forwardGaussianMDN(data)
         elif self.dist == "normal" and self.multivariate:
             return self.forwardMultivariateGaussianMDN(data)
-        elif self.dist in ["alanine", "trp"]:
+        elif self.dist in ["alanine", "trp", 'AA']:
             return self.forwardBADMDN(data)
         else:
             raise ValueError("Unknown distribution in MDN.")
@@ -486,7 +492,7 @@ class MixtureDensityNetwork(nn.Module):
         dists = self.getDistributions(var1, var2, var3, var4)
         if self.dist == "normal":
             output = dists.sample()
-        elif self.dist in ["alanine", "trp"]:
+        elif self.dist in ["alanine", "trp", 'AA']:
             output_normal = dists[0].sample()
             output_angles = dists[1].sample()
             output = torch.cat((output_normal, output_angles), dim=1)
@@ -533,7 +539,7 @@ class MixtureDensityNetwork(nn.Module):
             dist = torch.distributions.Normal(loc=var1, scale=var2)
         elif self.dist == "normal" and self.multivariate:
             dist = self.getMultivariateNormalDistribution(var1, var2)
-        elif self.dist in ["alanine", "trp"]:
+        elif self.dist in ["alanine", "trp", 'AA']:
             assert (var3 is not None)
             assert (var4 is not None)
             dist_normal = torch.distributions.Normal(loc=var1, scale=var2)
@@ -598,7 +604,7 @@ class MixtureDensityNetwork(nn.Module):
             assert (torch.all(targets < 1))
             assert (torch.all(targets > 0))
             targets = torch.log(targets / (1 - targets))
-        elif self.dist in ["alanine", "trp"] and self.bounded:
+        elif self.dist in ["alanine", "trp", 'AA'] and self.bounded:
             assert (targets.size()[1] == self.dims_total)
             assert (torch.all(targets[:, self.scaling_dims, :] < 1))
             assert (torch.all(targets[:, self.scaling_dims, :] > 0))
@@ -611,7 +617,7 @@ class MixtureDensityNetwork(nn.Module):
         if self.dist == "normal" and self.bounded:
             # Implementing the logistic function x = 1/(1 + exp(-z))
             outputs = 1.0 / (1.0 + torch.exp(-outputs))
-        elif self.dist in ["alanine", "trp"] and self.bounded:
+        elif self.dist in ["alanine", "trp", 'AA'] and self.bounded:
             assert (outputs.size()[1] == self.dims_total)
             # print(outputs.size())
             # torch.Size([499, 24, 5])
@@ -631,10 +637,10 @@ class MixtureDensityNetwork(nn.Module):
         return outputs
 
     def defineTRPVars(self):
-        self.dims_total = 456
-        self.dims_bonds = 153
-        self.dims_angles = 152
-        self.dims_dehedrals = 151
+        self.dims_total = 649
+        self.dims_bonds = 160
+        self.dims_angles = 219
+        self.dims_dehedrals = 270
         self.dims_bonds_ = list(np.arange(0, self.dims_bonds, 1))
         self.dims_angles_ = list(
             np.arange(self.dims_bonds, self.dims_bonds + self.dims_angles, 1))
@@ -646,10 +652,14 @@ class MixtureDensityNetwork(nn.Module):
         return 0
 
     def defineAlanineVars(self):
-        self.dims_total = 35
-        self.dims_bonds = 10
-        self.dims_angles = 13
-        self.dims_dehedrals = 12
+        # self.dims_total = 35
+        # self.dims_bonds = 10
+        # self.dims_angles = 13
+        # self.dims_dehedrals = 12
+        self.dims_total = 30
+        self.dims_bonds = 9
+        self.dims_angles = 11
+        self.dims_dehedrals = 10
         self.dims_bonds_ = list(np.arange(0, self.dims_bonds, 1))
         self.dims_angles_ = list(
             np.arange(self.dims_bonds, self.dims_bonds + self.dims_angles, 1))
@@ -684,8 +694,13 @@ class MixtureDensityNetwork(nn.Module):
                 print(self.L)
                 print(inst)
                 print(ark)
-        elif self.dist in ["alanine", "trp"]:
-            m_normal = torch.distributions.Normal(loc=var1, scale=var2)
+        elif self.dist in ["alanine", "trp", 'AA']:
+            try:
+                m_normal = torch.distributions.Normal(loc=var1, scale=var2)
+            except:
+                print("targets:", targets)
+                print('var1 :', var1)
+                print('var2 :', var2)
             m_angles = torch.distributions.VonMises(loc=var3,
                                                     concentration=var4)
 
@@ -723,7 +738,7 @@ class MixtureDensityNetwork(nn.Module):
         # torch.Size([272, 3, 2])
         # torch.Size([272, 2, 3])
 
-        if self.dist in ["alanine", "trp"]:
+        if self.dist in ["alanine", "trp", 'AA']:
 
             log_prob_normal = m_normal.log_prob(
                 targets[:, :self.output_dim_normal])

@@ -77,6 +77,125 @@ FIGTYPE = "pdf"
 # FIGTYPE="pdf"
 
 
+def plotStateDistributionsSystemTrp(model, results, set_name,
+                                        testing_mode):
+    makeRamaPlots(model, set_name, testing_mode, results)
+    return 0
+
+def makeRamaPlots(model, set_name, testing_mode, results):
+    rama_density_target = results["rama_density_target"]
+    rama_density_predicted = results["rama_density_predicted"]
+    rama_bin_centers = results["rama_bin_centers"]
+    rama_l1_hist_error = results["rama_l1_hist_error"]
+
+    rama_targets_all = results["rama_targets"]
+    rama_predictions_all = results["rama_predictions"]
+
+    rama_predictions = np.reshape(rama_predictions_all,
+                                  (-1, *np.shape(rama_predictions_all)[2:]))
+    rama_targets = np.reshape(rama_targets_all,
+                              (-1, *np.shape(rama_targets_all)[2:]))
+    print(np.shape(rama_predictions))
+    print(np.shape(rama_targets))
+
+    # rama_predictions = rama_predictions[:100]
+    # rama_targets = rama_targets[:100]
+
+    #################################################
+    ## RAMA PLOTS FOR ALL THE ICS
+    #################################################
+
+    textfontsize = 12
+    for norm_ in [False, True]:
+        print(norm_)
+        norm_str = "_normed" if norm_ else ""
+        ncols = 2
+        nrows = 1
+        fig, axes = plt.subplots(nrows=nrows,
+                                 ncols=ncols,
+                                 figsize=(4.25 * ncols, 4.25 * 5/6 * nrows),
+                                 squeeze=False)
+
+        axes[0, 0].set_title("Target Density")
+        phi = rama_targets[:, 0]
+        psi = rama_targets[:, 1]
+        axes[0, 0], mp = createRamachandranPlot(phi,
+                                                psi,
+                                                axes[0, 0],
+                                                with_colorbar=False,
+                                                log_norm=norm_,
+                                                fontsize=textfontsize,
+                                                )
+        fig.colorbar(mp, ax=axes[0, 0])
+
+        axes[0, 1].set_title("Predicted Density")
+        phi = rama_predictions[:, 0]
+        psi = rama_predictions[:, 1]
+        axes[0, 1], mp = createRamachandranPlot(phi,
+                                                psi,
+                                                axes[0, 1],
+                                                with_colorbar=False,
+                                                log_norm=norm_,
+                                                fontsize=textfontsize,
+                                                )
+        fig.colorbar(mp, ax=axes[0, 1])
+        fig.tight_layout()
+        fig_path = model.getFigureDir(
+        ) + "/{:}_ramachandran_distr_scatter_{:}_ALL{:}.{:}".format(
+            testing_mode, set_name, norm_str, FIGTYPE)
+        plt.savefig(fig_path, dpi=300)
+        plt.close()
+
+    for norm_ in [False, True]:
+        print(norm_)
+        norm_str = "_normed" if norm_ else ""
+        ncols = 1
+        nrows = 1
+
+        fig, axes = plt.subplots(nrows=nrows,
+                                 ncols=ncols,
+                                 figsize=(4.25 * ncols, 4.25 * 5/6 * nrows),
+                                 squeeze=False)
+        # axes[0, 0].set_title("Target Density")
+        phi = rama_targets[:, 0]
+        psi = rama_targets[:, 1]
+        axes[0, 0], mp = createRamachandranPlot(phi,
+                                                psi,
+                                                axes[0, 0],
+                                                with_colorbar=True,
+                                                log_norm=norm_,
+                                                fontsize=textfontsize,
+                                                )
+        # fig.colorbar(mp, ax=axes[0, 0])
+        fig.tight_layout()
+        fig_path = model.getFigureDir(
+        ) + "/{:}_ramachandran_distr_scatter_{:}_ALL{:}_target.{:}".format(
+            testing_mode, set_name, norm_str, FIGTYPE)
+        plt.savefig(fig_path, dpi=300)
+        plt.close()
+
+        fig, axes = plt.subplots(nrows=nrows,
+                                 ncols=ncols,
+                                 figsize=(4.25 * ncols, 4.25 * 5/6 * nrows),
+                                 squeeze=False)
+        # axes[0, 0].set_title("Predicted Density")
+        phi = rama_predictions[:, 0]
+        psi = rama_predictions[:, 1]
+        axes[0, 0], mp = createRamachandranPlot(phi,
+                                                psi,
+                                                axes[0, 0],
+                                                with_colorbar=True,
+                                                log_norm=norm_,
+                                                fontsize=textfontsize,
+                                                )
+        # fig.colorbar(mp, ax=axes[0, 0])
+        fig.tight_layout()
+        fig_path = model.getFigureDir(
+        ) + "/{:}_ramachandran_distr_scatter_{:}_ALL{:}_prediction.{:}".format(
+            testing_mode, set_name, norm_str, FIGTYPE)
+        plt.savefig(fig_path, dpi=300)
+        plt.close()
+        
 def computeLatentDynamicsDistributionErrorTRP(model, set_name):
     print("# computeLatentDynamicsDistributionErrorTRP() #")
     from scipy.integrate import simps

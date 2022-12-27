@@ -29,8 +29,8 @@ def addResultsSystemTRP(model, results, statistics, testing_mode):
     results = utils.calculateFreeEnergyProjection(results,
                                                   covariance_factor_scale,
                                                   gridpoints)
-    # latent_range_state_percent = 0.05
-    # results = utils.caclulateFreeEnergyProjectionLatentClusters(results, latent_range_state_percent)
+    latent_range_state_percent = 0.05
+    results = utils.caclulateFreeEnergyProjectionLatentClusters(results, latent_range_state_percent)
 
     # print("# Estimating Mean Passage Times (MPT) between Latent space clusters.")
 
@@ -463,3 +463,8 @@ def generateXYZfileFromABDnoRotTr(badfile, ref_conf, conffile, lammps_file):
         pdb.write("     %d   1     %d     %d\n" %
                   (n + 1, bonds[n][0] + 1, bonds[n][1] + 1))
     pdb.close()
+
+def computeStateDistributionStatisticsSystemTrp(state_dist_statistics, targets_all, prediction_all):
+    # you need to implement rama distribution statistics
+    # raise NotImplementedError("You need to implement state distribution function")
+    return state_dist_statistics

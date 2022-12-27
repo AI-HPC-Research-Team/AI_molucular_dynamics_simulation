@@ -12,16 +12,16 @@ cd ../../Methods
 #######################
 CUDA_DEVICES=0
 system_name=Alanine
-input_dim=35
+input_dim=30
 
 ##############################################
 # AUTOENCODER
 ##############################################
 AE_layers_num=4
-AE_layers_size=100
+AE_layers_size=50
 AE_residual=1
 activation_str_general=tanh
-latent_state_dim=4
+latent_state_dim=2
 
 
 ##############################################
@@ -43,7 +43,7 @@ max_epochs=50
 # MDN AT AUTOENCODER OUTPUT
 ##############################################
 MDN_kernels=5
-MDN_hidden_units=100
+MDN_hidden_units=50
 MDN_weight_sharing=0
 MDN_multivariate=0
 MDN_sigma_max=0.8
@@ -66,8 +66,8 @@ sequence_length=1
 ##############################################################################
 ##############################################################################
 
-mode=all
-# mode=test
+# mode=all
+mode=test
 # mode=plot
 MDN_fixed_kernels=0
 MDN_train_kernels=0
@@ -77,9 +77,9 @@ output_forecasting_loss=0
 latent_forecasting_loss=0
 prediction_horizon=4000
 # num_test_ICS=224
-num_test_ICS=2
+num_test_ICS=248
 
-write_to_log=0
+write_to_log=1
 
 # CUDA_VISIBLE_DEVICES=$CUDA_DEVICES python3 RUN.py md_arnn \
 # --mode $mode \
@@ -98,7 +98,7 @@ write_to_log=0
 # --overfitting_patience $overfitting_patience \
 # --max_epochs $max_epochs \
 # --max_rounds $max_rounds \
-# --random_seed 7 \
+# --random_seed 8 \
 # --display_output 1 \
 # --retrain $retrain \
 # --make_videos $make_videos \
@@ -192,8 +192,8 @@ write_to_log=0
 
 
 
-mode=all
-# mode=test
+# mode=all
+mode=test
 # mode=plot
 retrain=0
 reconstruction_loss=0
@@ -201,23 +201,23 @@ output_forecasting_loss=0
 latent_forecasting_loss=1
 train_rnn_only=1
 
-sequence_length=200
+sequence_length=400
 
 
 
 rnn_layers_num=1
-rnn_layers_size=10
+rnn_layers_size=20
 
 # prediction_horizon=3800
 # num_test_ICS=224
 
-prediction_horizon=3800
-num_test_ICS=1
+prediction_horizon=3600
+num_test_ICS=248
 
-RNN_MDN_kernels=4
+RNN_MDN_kernels=5
 RNN_MDN_multivariate=0
-RNN_MDN_hidden_units=10
-RNN_MDN_sigma_max=0.1
+RNN_MDN_hidden_units=20
+RNN_MDN_sigma_max=0.4
 RNN_MDN_fixed_kernels=0
 RNN_MDN_train_kernels=0
 RNN_MDN_multivariate_covariance_layer=0

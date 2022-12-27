@@ -21,7 +21,7 @@ from functools import partial
 print = partial(print, flush=True)
 
 import time
-
+from tqdm import tqdm  
 
 class md_arnn_model(nn.Module):
     def __init__(self, params, model):
@@ -135,6 +135,7 @@ class md_arnn_model(nn.Module):
                         nn.Linear(self.parent.layers_encoder_aug[ln],
                                   self.parent.layers_encoder_aug[ln + 1],
                                   bias=True))
+
             else:
                 raise ValueError("Not implemented.")
                 encoder = conv_models.getEncoderModel(self.parent)
@@ -398,7 +399,7 @@ class md_arnn_model(nn.Module):
             assert (T > 0)
             assert (horizon > 0)
             time_latent_prop = 0.0
-            for t in range(horizon):
+            for t in tqdm(range(horizon)):
                 # print("t")
                 # print(t)
                 # print(input_is_latent)
@@ -456,11 +457,11 @@ class md_arnn_model(nn.Module):
                                     output_MDN_var1 = output_MDN_var1[:, 0]
                                     output_MDN_var2 = output_MDN_var2[:, 0]
                                     if self.parent.MDN_distribution in [
-                                            "alanine", "trp"
+                                            "alanine", "trp", "AA"
                                     ]:
                                         output_MDN_var3 = output_MDN_var3[:, 0]
                                     if self.parent.MDN_distribution in [
-                                            "alanine", "trp"
+                                            "alanine", "trp", "AA"
                                     ]:
                                         output_MDN_var4 = output_MDN_var4[:, 0]
                                     raise ValueError("Not implemented.")
@@ -482,10 +483,10 @@ class md_arnn_model(nn.Module):
                     inputs_decoded_pi.append(input_decoded_pi[:, 0])
                     inputs_decoded_MDN_var2.append(input_decoded_MDN_var2[:,
                                                                           0])
-                    if self.parent.MDN_distribution in ["alanine", "trp"]:
+                    if self.parent.MDN_distribution in ["alanine", "trp", "AA"]:
                         inputs_decoded_MDN_var3.append(
                             input_decoded_MDN_var3[:, 0])
-                    if self.parent.MDN_distribution in ["alanine", "trp"]:
+                    if self.parent.MDN_distribution in ["alanine", "trp", "AA"]:
                         inputs_decoded_MDN_var4.append(
                             input_decoded_MDN_var4[:, 0])
 
@@ -514,10 +515,10 @@ class md_arnn_model(nn.Module):
                     1, 0).contiguous()
                 inputs_decoded_MDN_var2 = torch.stack(
                     inputs_decoded_MDN_var2).transpose(1, 0).contiguous()
-                if self.parent.MDN_distribution in ["alanine", "trp"]:
+                if self.parent.MDN_distribution in ["alanine", "trp", "AA"]:
                     inputs_decoded_MDN_var3 = torch.stack(
                         inputs_decoded_MDN_var3).transpose(1, 0).contiguous()
-                if self.parent.MDN_distribution in ["alanine", "trp"]:
+                if self.parent.MDN_distribution in ["alanine", "trp", "AA"]:
                     inputs_decoded_MDN_var4 = torch.stack(
                         inputs_decoded_MDN_var4).transpose(1, 0).contiguous()
 
@@ -531,10 +532,10 @@ class md_arnn_model(nn.Module):
                         1, 0).contiguous()
                     outputs_MDN_var2 = torch.stack(outputs_MDN_var2).transpose(
                         1, 0).contiguous()
-                    if self.parent.MDN_distribution in ["alanine", "trp"]:
+                    if self.parent.MDN_distribution in ["alanine", "trp", "AA"]:
                         outputs_MDN_var3 = torch.stack(
                             outputs_MDN_var3).transpose(1, 0).contiguous()
-                    if self.parent.MDN_distribution in ["alanine", "trp"]:
+                    if self.parent.MDN_distribution in ["alanine", "trp", "AA"]:
                         outputs_MDN_var4 = torch.stack(
                             outputs_MDN_var4).transpose(1, 0).contiguous()
                     outputs = [
@@ -811,10 +812,10 @@ class md_arnn_model(nn.Module):
                     1, 0).contiguous()
                 inputs_decoded_MDN_var2 = inputs_decoded_MDN_var2.transpose(
                     1, 0).contiguous()
-                if self.parent.MDN_distribution in ["alanine", "trp"]:
+                if self.parent.MDN_distribution in ["alanine", "trp", "AA"]:
                     inputs_decoded_MDN_var3 = inputs_decoded_MDN_var3.transpose(
                         1, 0).contiguous()
-                if self.parent.MDN_distribution in ["alanine", "trp"]:
+                if self.parent.MDN_distribution in ["alanine", "trp", "AA"]:
                     inputs_decoded_MDN_var4 = inputs_decoded_MDN_var4.transpose(
                         1, 0).contiguous()
                 inputs_decoded = [
@@ -869,7 +870,7 @@ class md_arnn_model(nn.Module):
                         axis=0,
                         repeat_times=num_particles,
                         interleave=True)
-            elif distribution in ["alanine", "trp"]:
+            elif distribution in ["alanine", "trp", "AA"]:
                 MDN_output_dim_normal = self.DECODER[-1].output_dim_normal
                 MDN_output_dim_von_mishes = self.DECODER[
                     -1].output_dim_von_mishes
@@ -911,10 +912,10 @@ class md_arnn_model(nn.Module):
             outputs_pi = outputs_pi.transpose(1, 0).contiguous()
             outputs_MDN_var1 = outputs_MDN_var1.transpose(1, 0).contiguous()
             outputs_MDN_var2 = outputs_MDN_var2.transpose(1, 0).contiguous()
-            if distribution in ["alanine", "trp"]:
+            if distribution in ["alanine", "trp", "AA"]:
                 outputs_MDN_var3 = outputs_MDN_var3.transpose(1,
                                                               0).contiguous()
-            if distribution in ["alanine", "trp"]:
+            if distribution in ["alanine", "trp", "AA"]:
                 outputs_MDN_var4 = outputs_MDN_var4.transpose(1,
                                                               0).contiguous()
             outputs = [
@@ -1107,9 +1108,9 @@ class md_arnn_model(nn.Module):
             pi_ = torch.stack(pi_)
             MDN_var1_ = torch.stack(MDN_var1_)
             MDN_var2_ = torch.stack(MDN_var2_)
-            if self.parent.MDN_distribution in ["alanine", "trp"]:
+            if self.parent.MDN_distribution in ["alanine", "trp", "AA"]:
                 MDN_var3_ = torch.stack(MDN_var3_)
-            if self.parent.MDN_distribution in ["alanine", "trp"]:
+            if self.parent.MDN_distribution in ["alanine", "trp", "AA"]:
                 MDN_var4_ = torch.stack(MDN_var4_)
             return [pi_, MDN_var1_, MDN_var2_, MDN_var3_, MDN_var4_]
         else:

@@ -51,7 +51,10 @@ def plotStateDistributionsSystem(model, results, set_name, testing_mode):
     if model.system_name == "AdvectionDiffusionReflective":
         utils_plotting_AD.plotStateDistributionsSystemAdvectionDiffusion(
             model, results, set_name, testing_mode)
-
+    # if model.system_name == "TRP":
+    #     utils_plotting_trp.plotStateDistributionsSystemTrp(
+    #         model, results, set_name, testing_mode)
+        
     return 0
 
 
@@ -90,7 +93,7 @@ def plotSystem(model, results, set_name, testing_mode):
 
     elif model.system_name in ["TRP"]:
 
-        # utils.plotLatentDynamicsFreeEnergy(model, results, set_name, testing_mode)
+        utils.plotLatentDynamicsFreeEnergy(model, results, set_name, testing_mode)
 
         if model.params["plot_protein_trajectories"]:
             utils_plotting_trp.generateXYZfromABDtrajectoriesTRP(

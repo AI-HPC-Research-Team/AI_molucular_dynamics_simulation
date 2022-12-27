@@ -322,6 +322,8 @@ def getSystemDataInfo(model):
                 model.data_path_gen + "/data_max_bonds.txt",
                 model.data_path_gen + "/data_min_angles.txt",
                 model.data_path_gen + "/data_max_angles.txt",
+                model.data_path_gen + "/data_min_dihedral.txt",
+                model.data_path_gen + "/data_max_dihedral.txt",
         ]:
             if not os.path.isfile(fname):
                 raise ValueError(
@@ -329,14 +331,39 @@ def getSystemDataInfo(model):
                     .format(fname))
 
         assert (model.scaler == "MinMaxZeroOne")
+        # data_info_dict.update({
+        #     'scaler':
+        #     utils.scalerBAD(
+        #         scaler_type="MinMaxZeroOne",
+        #         dims_total=35,
+        #         dims_bonds=10,
+        #         dims_angles=13,
+        #         dims_dihedrals=12,
+        #         data_min_bonds=np.loadtxt(model.data_path_gen +
+        #                                   "/data_min_bonds.txt"),
+        #         data_max_bonds=np.loadtxt(model.data_path_gen +
+        #                                   "/data_max_bonds.txt"),
+        #         data_min_angles=np.loadtxt(model.data_path_gen +
+        #                                    "/data_min_angles.txt"),
+        #         data_max_angles=np.loadtxt(model.data_path_gen +
+        #                                    "/data_max_angles.txt"),
+        #         slack=0.05,
+        #     ),
+        #     'dt':
+        #     0.1 * 10e-12,
+        #     'density_plots':
+        #     False,
+        #     'statistics_per_state':
+        #     True,
+        # })
         data_info_dict.update({
             'scaler':
             utils.scalerBAD(
                 scaler_type="MinMaxZeroOne",
-                dims_total=35,
-                dims_bonds=10,
-                dims_angles=13,
-                dims_dehedrals=12,
+                dims_total=30,
+                dims_bonds=9,
+                dims_angles=11,
+                dims_dihedrals=10,
                 data_min_bonds=np.loadtxt(model.data_path_gen +
                                           "/data_min_bonds.txt"),
                 data_max_bonds=np.loadtxt(model.data_path_gen +
@@ -379,10 +406,10 @@ def getSystemDataInfo(model):
             'scaler':
             utils.scalerBAD(
                 scaler_type="MinMaxZeroOne",
-                dims_total=456,
-                dims_bonds=153,
-                dims_angles=152,
-                dims_dehedrals=151,
+                dims_total=649,
+                dims_bonds=160,
+                dims_angles=219,
+                dims_dihedrals=270,
                 data_min_bonds=np.loadtxt(model.data_path_gen +
                                           "/data_min_bonds.txt"),
                 data_max_bonds=np.loadtxt(model.data_path_gen +
@@ -412,7 +439,7 @@ def getSystemDataInfo(model):
                 model.data_path_gen + "/data_min_bonds.txt",
                 model.data_path_gen + "/data_max_bonds.txt",
                 model.data_path_gen + "/data_min_angles.txt",
-                model.data_path_gen + "/data_max_angles.txt",
+                model.data_path_gen + "/data_max_angles.txt"
         ]:
             if not os.path.isfile(fname):
                 raise ValueError(
@@ -433,7 +460,7 @@ def getSystemDataInfo(model):
                 dims_total=7998,
                 dims_bonds=2012,
                 dims_angles=2710,
-                dims_dehedrals=3276,
+                dims_dihedrals=3276,
                 data_min_bonds=np.loadtxt(model.data_path_gen +
                                           "/data_min_bonds.txt"),
                 data_max_bonds=np.loadtxt(model.data_path_gen +

@@ -455,8 +455,8 @@ def plotLatentMetaStableStatesAndLatentTransitionTimesAlanine(
                     colorbar_str = "Colorbar" if with_colorbar else ""
                     fig, ax = plt.subplots(figsize=(4.25 * 1, 4.25 * 5/6 * 1))
                     textfontsize=12
-                    phi = data_all_region[:, 21] * 180 / np.pi
-                    psi = data_all_region[:, 20] * 180 / np.pi
+                    phi = data_all_region[:, 29] * 180 / np.pi
+                    psi = data_all_region[:, 23] * 180 / np.pi
                     if len(phi) > 0:
                         ax, mp = createRamachandranPlot(
                             phi,
@@ -1000,9 +1000,9 @@ def plotClusteredLatentDynamics(model, set_name, testing_mode,
                 fig, ax = plt.subplots()
                 # print(np.shape(clustered_trajectory))
                 phi = stateBAD[clustered_trajectory == cluster_id,
-                               21] * 180 / np.pi
+                                29] * 180 / np.pi
                 psi = stateBAD[clustered_trajectory == cluster_id,
-                               20] * 180 / np.pi
+                               23] * 180 / np.pi
                 # print("####################")
                 # print(np.max(phi))
                 # print(np.min(phi))
@@ -1037,9 +1037,9 @@ def plotClusteredLatentDynamics(model, set_name, testing_mode,
             fig, ax = plt.subplots()
             for cluster_id in range(n_clusters):
                 phi = stateBAD[clustered_trajectory == cluster_id,
-                               21] * 180 / np.pi
+                               29] * 180 / np.pi
                 psi = stateBAD[clustered_trajectory == cluster_id,
-                               20] * 180 / np.pi
+                               23] * 180 / np.pi
                 if len(phi) > 0:
                     ax, mp = createRamachandranPlot(
                         phi,

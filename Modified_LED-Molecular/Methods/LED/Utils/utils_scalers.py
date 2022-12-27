@@ -161,7 +161,7 @@ class scalerBAD(object):
         dims_total,
         dims_bonds,
         dims_angles,
-        dims_dehedrals,
+        dims_dihedrals,
         data_min_bonds,
         data_max_bonds,
         data_min_angles,
@@ -193,20 +193,19 @@ class scalerBAD(object):
         self.dims_total = dims_total
         self.dims_bonds = dims_bonds
         self.dims_angles = dims_angles
-        self.dims_dehedrals = dims_dehedrals
+        self.dims_dihedrals = dims_dihedrals
 
         self.dims_bonds_ = list(np.arange(0, self.dims_bonds, 1))
         self.dims_angles_ = list(
             np.arange(self.dims_bonds, self.dims_bonds + self.dims_angles, 1))
-        self.dims_dehedrals_ = list(
+        self.dims_dihedrals_ = list(
             np.arange(self.dims_bonds + self.dims_angles,
-                      self.dims_bonds + self.dims_angles + self.dims_dehedrals,
+                      self.dims_bonds + self.dims_angles + self.dims_dihedrals,
                       1))
 
         self.scaling_dims = self.dims_bonds_ + self.dims_angles_
-        # print(self.dims_bonds_)
         # print(self.dims_angles_)
-        # print(self.dims_dehedrals_)
+        # print(self.dims_dihedrals_)
 
     def scaleData(self, batch_of_sequences, single_sequence=False):
         if single_sequence: batch_of_sequences = batch_of_sequences[np.newaxis]

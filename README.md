@@ -19,7 +19,7 @@
 To install latex package
 
 ```
-sudo apt install dvipng texlive texlive-latex-extra texlive-latex-recommended cm-super
+sudo apt install dvipng texlive texlive-latex-extra texlive-latex-recommended cm-super zliblg-devel
 ```
 
 ### Python
