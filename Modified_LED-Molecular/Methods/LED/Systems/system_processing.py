@@ -360,10 +360,10 @@ def getSystemDataInfo(model):
             'scaler':
             utils.scalerBAD(
                 scaler_type="MinMaxZeroOne",
-                dims_total=30,
+                dims_total=24,
                 dims_bonds=9,
-                dims_angles=11,
-                dims_dihedrals=10,
+                dims_angles=8,
+                dims_dihedrals=7,
                 data_min_bonds=np.loadtxt(model.data_path_gen +
                                           "/data_min_bonds.txt"),
                 data_max_bonds=np.loadtxt(model.data_path_gen +
@@ -406,10 +406,10 @@ def getSystemDataInfo(model):
             'scaler':
             utils.scalerBAD(
                 scaler_type="MinMaxZeroOne",
-                dims_total=649,
-                dims_bonds=160,
-                dims_angles=219,
-                dims_dihedrals=270,
+                dims_total=456,
+                dims_bonds=153,
+                dims_angles=152,
+                dims_dihedrals=151,
                 data_min_bonds=np.loadtxt(model.data_path_gen +
                                           "/data_min_bonds.txt"),
                 data_max_bonds=np.loadtxt(model.data_path_gen +

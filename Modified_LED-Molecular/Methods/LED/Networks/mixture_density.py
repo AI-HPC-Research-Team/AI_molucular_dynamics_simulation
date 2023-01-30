@@ -111,15 +111,15 @@ class MixtureDensityNetwork(nn.Module):
             # elif self.dist == "AA":
             # self.output_dim_normal = 23
             # self.output_dim_von_mishes = 12
-            self.output_dim_normal = 20
-            self.output_dim_von_mishes = 10
+            self.output_dim_normal = 17
+            self.output_dim_von_mishes = 7
             self.defineAlanineVars()    
             self.all_kernels_output_dim_normal = self.output_dim_normal * n_kernels
             self.all_kernels_output_dim_von_mises = self.output_dim_von_mishes * n_kernels
         elif self.dist == "trp":
             self.defineTRPVars()
-            self.output_dim_normal = 160 + 219 # jinraol
-            self.output_dim_von_mishes = 270 # jinraol
+            self.output_dim_normal = 153 + 152 # jinraol
+            self.output_dim_von_mishes = 151 # jinraol
             self.all_kernels_output_dim_normal = self.output_dim_normal * n_kernels
             self.all_kernels_output_dim_von_mises = self.output_dim_von_mishes * n_kernels
         else:
@@ -356,6 +356,8 @@ class MixtureDensityNetwork(nn.Module):
         concentration = self.reshapeOutput(self.softplus(
             self.z_concentration(z_h)),
                                            var_dim=self.output_dim_von_mishes)
+        # jinraol
+        concentration = torch.clamp(concentration, min=1e-6)
 
         # print(mu.max())
         # print(mu.min())
@@ -637,10 +639,10 @@ class MixtureDensityNetwork(nn.Module):
         return outputs
 
     def defineTRPVars(self):
-        self.dims_total = 649
-        self.dims_bonds = 160
-        self.dims_angles = 219
-        self.dims_dehedrals = 270
+        self.dims_total =  456 #649
+        self.dims_bonds = 153 #160
+        self.dims_angles = 152 #219
+        self.dims_dehedrals = 151 #270
         self.dims_bonds_ = list(np.arange(0, self.dims_bonds, 1))
         self.dims_angles_ = list(
             np.arange(self.dims_bonds, self.dims_bonds + self.dims_angles, 1))
@@ -656,10 +658,10 @@ class MixtureDensityNetwork(nn.Module):
         # self.dims_bonds = 10
         # self.dims_angles = 13
         # self.dims_dehedrals = 12
-        self.dims_total = 30
+        self.dims_total = 24
         self.dims_bonds = 9
-        self.dims_angles = 11
-        self.dims_dehedrals = 10
+        self.dims_angles = 8
+        self.dims_dehedrals = 7
         self.dims_bonds_ = list(np.arange(0, self.dims_bonds, 1))
         self.dims_angles_ = list(
             np.arange(self.dims_bonds, self.dims_bonds + self.dims_angles, 1))
@@ -701,9 +703,9 @@ class MixtureDensityNetwork(nn.Module):
                 print("targets:", targets)
                 print('var1 :', var1)
                 print('var2 :', var2)
+            
             m_angles = torch.distributions.VonMises(loc=var3,
                                                     concentration=var4)
-
         else:
             raise ValueError("Unknown distribution in MDN.")
 
@@ -752,6 +754,7 @@ class MixtureDensityNetwork(nn.Module):
             log_prob = torch.cat((log_prob_normal, log_prob_angles), dim=1)
             # print(log_prob.size())
             # print(ark)
+                
         else:
             log_prob = m.log_prob(targets)
 

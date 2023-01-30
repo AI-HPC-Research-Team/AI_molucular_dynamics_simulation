@@ -62,6 +62,8 @@ class md_arnn_model(nn.Module):
         # for modules in [self.ENCODER, self.DECODER, self.RNN, self.RNN_OUTPUT]:
         for modules in self.module_list:
             for module in modules:
+                if isinstance(module, nn.BatchNorm1d):
+                    continue
                 for name, param in module.named_parameters():
                     # print(name)
                     # INITIALIZING RNN, GRU CELLS
@@ -90,7 +92,11 @@ class md_arnn_model(nn.Module):
                         param.data.fill_(0)
 
                     elif 'weight' in name:
-                        torch.nn.init.xavier_uniform_(param.data)
+                        # torch.nn.init.xavier_uniform_(param.data) #origin
+                        try:
+                            torch.nn.init.kaiming_uniform_(param.data)
+                        except:
+                            print(module)
 
                     elif 'bias' in name:
                         param.data.fill_(0)
@@ -135,6 +141,7 @@ class md_arnn_model(nn.Module):
                         nn.Linear(self.parent.layers_encoder_aug[ln],
                                   self.parent.layers_encoder_aug[ln + 1],
                                   bias=True))
+                    self.ENCODER.append(nn.BatchNorm1d(self.parent.layers_encoder_aug[ln + 1]))
 
             else:
                 raise ValueError("Not implemented.")
@@ -251,6 +258,7 @@ class md_arnn_model(nn.Module):
                     nn.Linear(self.parent.layers_decoder_aug[ln],
                               self.parent.layers_decoder_aug[ln + 1],
                               bias=True))
+                self.DECODER.append(nn.BatchNorm1d(self.parent.layers_decoder_aug[ln + 1]))
 
         self.module_list = [
             self.DROPOUT, self.PERM_INV, self.ENCODER, self.DECODER, self.RNN,
@@ -1001,7 +1009,7 @@ class md_arnn_model(nn.Module):
                     output = self.DROPOUT[0](output)
                 output = self.constructPermInvFeatures(output)
 
-            for l in range(len(self.ENCODER)):
+            for l in range(len(self.ENCODER)//2):
                 # In convolutional autoencoders, add the residual connections 0-2, 2-4, 4-6 (the dimension remains the same)
                 # In normal autoencoder, add the residual connections 1-3, 3-5, 5-7
                 if (self.parent.AE_convolutional and
@@ -1025,9 +1033,10 @@ class md_arnn_model(nn.Module):
                     layer_prev = l
                 if self.parent.AE_convolutional:
                     output = pad_circular(output, self.padding)
-                output = self.ENCODER[l](output)
-
-                if l < len(self.ENCODER) - 1:
+                output = self.ENCODER[2*l](output)
+                output = self.ENCODER[2*l+1](output)
+                
+                if l < len(self.ENCODER)//2 - 1:
                     output = self.activation_general(output)
                 output = self.DROPOUT[0](output)
 
@@ -1053,7 +1062,7 @@ class md_arnn_model(nn.Module):
             # print(input_t.size())
             # print(ark)
             # print(len(self.DECODER))
-            for l in range(len(self.DECODER)):
+            for l in range(len(self.DECODER)//2+1):
                 # print(output.size())
                 if (self.parent.AE_convolutional and
                     (l > 0
@@ -1074,14 +1083,16 @@ class md_arnn_model(nn.Module):
 
                 # print(output)
                 # print(output.size())
-                output = self.DECODER[l](output)
-
-                if l < len(self.DECODER) - 1:
+                output = self.DECODER[2*l](output)
+                
+                
+                if l < len(self.DECODER)//2:
                     # NO ACTIVATION AND DROPOUT IN THE LAST LAYER
+                    output = self.DECODER[2*l+1](output)
                     output = self.activation_general(output)
                     output = self.DROPOUT[0](output)
                     # print("layer output size {:}".format(output.size()))
-                elif l == len(self.DECODER) - 1:  #
+                elif l == len(self.DECODER)//2:  #
                     # LAST LAYER OF DECODER
                     if self.parent.MDN_bool:
                         pi, MDN_var1, MDN_var2, MDN_var3, MDN_var4 = output

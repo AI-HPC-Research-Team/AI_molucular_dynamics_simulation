@@ -10,7 +10,7 @@ cd ../../Methods
 #######################
 # SYSTEM PARAMETERS
 #######################
-CUDA_DEVICES=3
+CUDA_DEVICES=0
 system_name=Alanine
 input_dim=24
 
@@ -191,8 +191,8 @@ write_to_log=1
 
 
 
-# mode=all
-mode=test
+mode=all
+# mode=test
 # mode=plot
 retrain=0
 reconstruction_loss=0
@@ -201,7 +201,6 @@ latent_forecasting_loss=1
 train_rnn_only=1
 
 sequence_length=200
-
 
 
 rnn_layers_num=1
@@ -221,67 +220,68 @@ RNN_MDN_fixed_kernels=0
 RNN_MDN_train_kernels=0
 RNN_MDN_multivariate_covariance_layer=0
 
-# CUDA_VISIBLE_DEVICES=$CUDA_DEVICES python3 RUN.py md_arnn \
-# --mode $mode \
-# --system_name $system_name \
-# --cudnn_benchmark 1 \
-# --write_to_log $write_to_log \
-# --input_dim $input_dim \
-# --output_forecasting_loss $output_forecasting_loss \
-# --latent_forecasting_loss $latent_forecasting_loss \
-# --reconstruction_loss $reconstruction_loss \
-# --scaler $scaler \
-# --sequence_length $sequence_length \
-# --learning_rate $learning_rate \
-# --weight_decay $weight_decay \
-# --batch_size $batch_size \
-# --overfitting_patience $overfitting_patience \
-# --max_epochs $max_epochs \
-# --max_rounds $max_rounds \
-# --random_seed 7 \
-# --display_output 1 \
-# --retrain $retrain \
-# --make_videos $make_videos \
-# --activation_str_general $activation_str_general \
-# --AE_layers_num $AE_layers_num \
-# --AE_layers_size $AE_layers_size \
-# --AE_residual $AE_residual \
-# --latent_state_dim $latent_state_dim  \
-# --MDN_sigma_max $MDN_sigma_max \
-# --MDN_weight_sharing $MDN_weight_sharing \
-# --MDN_multivariate $MDN_multivariate \
-# --MDN_kernels $MDN_kernels \
-# --MDN_hidden_units $MDN_hidden_units \
-# --MDN_fixed_kernels $MDN_fixed_kernels \
-# --MDN_train_kernels $MDN_train_kernels \
-# --MDN_distribution $MDN_distribution \
-# --MDN_multivariate_covariance_layer $MDN_multivariate_covariance_layer \
-# --RNN_cell_type lstm \
-# --RNN_layers_num $rnn_layers_num  \
-# --RNN_layers_size $rnn_layers_size  \
-# --RNN_activation_str tanh \
-# --teacher_forcing_forecasting 1 \
-# --iterative_latent_forecasting 1 \
-# --multiscale_forecasting 0 \
-# --iterative_propagation_is_latent 1 \
-# --train_rnn_only $train_rnn_only \
-# --compute_spectrum 0 \
-# --RNN_MDN_kernels $RNN_MDN_kernels \
-# --RNN_MDN_multivariate $RNN_MDN_multivariate \
-# --RNN_MDN_hidden_units $RNN_MDN_hidden_units \
-# --RNN_MDN_sigma_max $RNN_MDN_sigma_max \
-# --RNN_MDN_fixed_kernels $RNN_MDN_fixed_kernels \
-# --RNN_MDN_train_kernels $RNN_MDN_train_kernels \
-# --RNN_MDN_multivariate_covariance_layer $RNN_MDN_multivariate_covariance_layer \
-# --prediction_horizon $prediction_horizon \
-# --num_test_ICS $num_test_ICS \
-# --test_on_train 1 \
-# --test_on_val 1 \
-# --test_on_test 1 \
-# --plot_state_distributions 0 \
-# --plot_state_distributions_system 0 \
-# --plot_system 1 \
-# --plot_testing_ics_examples 1
+CUDA_VISIBLE_DEVICES=$CUDA_DEVICES python3 RUN.py md_arnn \
+--mode $mode \
+--system_name $system_name \
+--cudnn_benchmark 1 \
+--write_to_log $write_to_log \
+--input_dim $input_dim \
+--output_forecasting_loss $output_forecasting_loss \
+--latent_forecasting_loss $latent_forecasting_loss \
+--reconstruction_loss $reconstruction_loss \
+--scaler $scaler \
+--sequence_length $sequence_length \
+--learning_rate $learning_rate \
+--weight_decay $weight_decay \
+--batch_size $batch_size \
+--overfitting_patience $overfitting_patience \
+--max_epochs $max_epochs \
+--max_rounds $max_rounds \
+--random_seed 7 \
+--display_output 1 \
+--retrain $retrain \
+--make_videos $make_videos \
+--activation_str_general $activation_str_general \
+--AE_layers_num $AE_layers_num \
+--AE_layers_size $AE_layers_size \
+--AE_residual $AE_residual \
+--latent_state_dim $latent_state_dim  \
+--MDN_sigma_max $MDN_sigma_max \
+--MDN_weight_sharing $MDN_weight_sharing \
+--MDN_multivariate $MDN_multivariate \
+--MDN_kernels $MDN_kernels \
+--MDN_hidden_units $MDN_hidden_units \
+--MDN_fixed_kernels $MDN_fixed_kernels \
+--MDN_train_kernels $MDN_train_kernels \
+--MDN_distribution $MDN_distribution \
+--MDN_multivariate_covariance_layer $MDN_multivariate_covariance_layer \
+--RNN_cell_type lstm \
+--RNN_layers_num $rnn_layers_num  \
+--RNN_layers_size $rnn_layers_size  \
+--RNN_activation_str tanh \
+--teacher_forcing_forecasting 1 \
+--iterative_latent_forecasting 1 \
+--multiscale_forecasting 0 \
+--iterative_propagation_is_latent 1 \
+--train_rnn_only $train_rnn_only \
+--compute_spectrum 0 \
+--RNN_MDN_kernels $RNN_MDN_kernels \
+--RNN_MDN_multivariate $RNN_MDN_multivariate \
+--RNN_MDN_hidden_units $RNN_MDN_hidden_units \
+--RNN_MDN_sigma_max $RNN_MDN_sigma_max \
+--RNN_MDN_fixed_kernels $RNN_MDN_fixed_kernels \
+--RNN_MDN_train_kernels $RNN_MDN_train_kernels \
+--RNN_MDN_multivariate_covariance_layer $RNN_MDN_multivariate_covariance_layer \
+--prediction_horizon $prediction_horizon \
+--num_test_ICS $num_test_ICS \
+--test_on_train 1 \
+--test_on_val 1 \
+--test_on_test 1 \
+--plot_state_distributions 0 \
+--plot_state_distributions_system 0 \
+--plot_latent_dynamics_comparison_system 1 \
+--plot_system 1 \
+--plot_testing_ics_examples 1
 
 
 

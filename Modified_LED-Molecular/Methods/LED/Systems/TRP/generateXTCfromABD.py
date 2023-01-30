@@ -1,6 +1,9 @@
 from math import cos, sin, sqrt, acos, atan2, fabs, pi    
 import numpy as np
 import math
+import MDAnalysis as mda
+from MDAnalysis.analysis import align, rms
+
 
 ########################################################
 def find_BA(dd1, dd2, dd3, dd4):
@@ -232,10 +235,10 @@ if __name__ == "__main__":
     import pickle as pk
     import MDAnalysis as mda
     from tqdm import tqdm
-    import pdb
-    pdb.set_trace()
+    # import pdb
+    # pdb.set_trace()
     
-    DataFilePath = '/workspace/lizt/AI_molucular_dynamics_simulation/Modified_LED-Molecular/Results/TRP/Evaluation_Data/GPU-ARNN-scaler_MinMaxZeroOne-LR_0.001-L2_0.0-MDN_trp-KERN_5-HIDDEN_50-SigmaMax_0.8-DIM_649-AUTO_6x500-ACT_tanh-RES_1-DKP_1-LD_2-C_lstm-R_1x40-SL_200-R-MDN_normal-R-KERN_4-R-HIDDEN_20-R-SMax_0.1/results_iterative_latent_forecasting_train.pickle'
+    DataFilePath = '/workspace/lizt/AI_molucular_dynamics_simulation/Modified_LED-Molecular/Results/TRP/Evaluation_Data/GPU-ARNN-scaler_MinMaxZeroOne-LR_0.001-L2_0.0-MDN_trp-KERN_5-HIDDEN_50-SigmaMax_0.8-DIM_649-AUTO_6x500-ACT_tanh-RES_1-DKP_1-LD_2-C_lstm-R_1x40-SL_400-R-MDN_normal-R-KERN_4-R-HIDDEN_20-R-SMax_0.1/results_iterative_latent_forecasting_train.pickle'
     topolFilePath = '/workspace/lizt/AI_molucular_dynamics_simulation/Modified_LED-Molecular/Data/TRP/topol.top'
     
     
@@ -340,18 +343,17 @@ if __name__ == "__main__":
         for Nfile, frame in tqdm(enumerate(trajs[start:end])):
             coords.append(new_config(frame[nconflict_b_indices], frame[nconflict_a_indices], frame[nconflict_d_indices]))
         return coords
-    
 
-    
+            
     from multiprocessing import Pool, cpu_count
     import math
     from functools import partial
     
     
-    # num_cores = cpu_count()
-    num_cores  = 1
+    num_cores = cpu_count()
+    # num_cores  = 1
     num_steps = len(trajs) 
-    num_steps = 10
+    # num_steps = 10
     if num_cores > 1:
         num_state_per_state = math.ceil(num_steps / num_cores) 
         p = Pool(num_cores)
@@ -368,65 +370,25 @@ if __name__ == "__main__":
         
     coordinates = np.array(coordinates)
     
-    # 计算分子重心并计算各个原子的距离重心的距离
-    def remove_com(conf):
-        # calculate center of mass165
-        comp = [0.0, 0.0, 0.0]
-        masstotal = sum(mass)
-        for i in range(len(conf)):
-            for dim in range(3):
-                comp[dim] += mass[i] * conf[i][dim]
-        for dim in range(3):
-            comp[dim] /= masstotal
-
-        # substract center of mass
-        conf_com = np.zeros((len(conf), 3), float)
-        for i in range(len(conf)):
-            for dim in range(3):
-                conf_com[i, dim] = conf[i][dim] - comp[dim]
-
-        return conf_com
-
-
-    # 根据参考分子的角度旋转现在的分子角度
-    def rotationmatrix(coordref, coord):
-
-        assert (coordref.shape[1] == 3)
-        assert (coordref.shape == coord.shape)
-        correlation_matrix = np.dot(np.transpose(coordref), coord)
-        vv, ss, ww = np.linalg.svd(correlation_matrix)
-        is_reflection = (np.linalg.det(vv) * np.linalg.det(ww)) < 0.0
-        #if is_reflection:
-        #print "is_reflection"
-        #vv[-1,:] = -vv[-1,:]
-        #ss[-1] = -ss[-1]
-        #vv[:, -1] = -vv[:, -1]
-        rotation = np.dot(vv, ww)
-
-        confnew = []
-        for i in range(len(coord)):
-            xx = rotation[0][0] * coord[i][0] + rotation[0][1] * coord[i][
-                1] + rotation[0][2] * coord[i][2]
-            yy = rotation[1][0] * coord[i][0] + rotation[1][1] * coord[i][
-                1] + rotation[1][2] * coord[i][2]
-            zz = rotation[2][0] * coord[i][0] + rotation[2][1] * coord[i][
-                1] + rotation[2][2] * coord[i][2]
-            confnew.append((xx, yy, zz))
-
-        return confnew
-    
-    # 记录154个原子的重量
-    mass = atoms.masses
-    conf_ref = remove_com(coordinates[0])
-    rotation_coordinates = [conf_ref]
-    for i in range(1, coordinates.shape[0]):
-        conf_com = remove_com(coordinates[i])
-        rotation_coordinates.append(rotationmatrix(conf_ref, conf_com))
-     
-    rotation_coordinates = np.array(rotation_coordinates)
     all_coordinates = np.zeros((num_steps, traj.atoms.n_atoms, 3))
-    
-    all_coordinates[:, atoms.indices, :] = rotation_coordinates
+    all_coordinates[:, atoms.indices, :] = coordinates
     traj.load_new(all_coordinates, in_memory=True)
-    traj.dimensions = [500, 500, 500, 90, 90, 90]
-    traj.select_atoms('protein').select_atoms("type N CW C CA CT NA O CB N2 O2 CN N3 C* OH").write('trp.xtc', frames='all')
+    traj.dimensions = [50, 50, 50, 90, 90, 90]
+    
+    for frame in tqdm(traj.trajectory):
+        traj.atoms.dimensions = [50, 50, 50, 90, 90, 90]
+    traj.atoms.select_atoms("protein").write('trp_rama.xtc', frames='all')
+    traj.atoms.select_atoms("protein").select_atoms("type N CW C CA CT NA O CB N2 O2 CN N3 C* OH").write('trp_heavy.xtc', frames='all')
+    traj.atoms.select_atoms("protein").select_atoms("type N CW C CA CT NA O CB N2 O2 CN N3 C* OH").write('trp_heavy.gro')
+    traj = mda.Universe('trp_heavy.gro', 'trp_heavy.xtc')
+    ref = traj.copy()
+    ref.trajectory[0]
+    with mda.Writer('trp1.xtc', atoms.n_atoms)  as w:
+        for i in tqdm(range(num_steps)):
+            traj.trajectory[i]
+            # unaligned_rmsd = rms.rmsd(traj.atoms.positions, ref.atoms.positions, superposition=False)
+            aligner = align.AlignTraj(traj, ref, in_memory=True).run()
+            traj.trajectory[i]
+            # aligned_rmsd = rms.rmsd(traj.atoms.positions, ref.atoms.positions, superposition=False)
+            w.write(atoms)
+        

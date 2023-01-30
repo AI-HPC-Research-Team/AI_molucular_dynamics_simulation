@@ -20,9 +20,12 @@ from .CGW import utils_plotting_cgw as utils_plotting_cgw
 def plotLatentDynamicsComparisonSystem(model, set_name):
 
     if utils.isAlanineDataset(model.system_name):
-        utils_plotting_alanine.plotLatentDynamicsComparisonSystemAlanine(
-            model, set_name)
-
+        if model.params["latent_state_dim"] == 1:
+            utils_plotting_alanine.plotLatentDynamicsComparisonSystemAlanine(
+                model, set_name)
+        else:
+            utils_plotting_alanine.computeLatentDynamicsDistributionErrorAlanine(
+                model, set_name)
     if model.system_name == "BMP":
         utils_plotting_bmp.plotLatentDynamicsComparisonSystemBMP(
             model, set_name)

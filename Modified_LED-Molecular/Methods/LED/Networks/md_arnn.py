@@ -836,12 +836,8 @@ class md_arnn():
                 is_perm_inv,
                 MDN_dist,
             )
-            try:
-                loss = MDN_loss_fn(target, pi, MDN_var1, MDN_var2, MDN_var3,
-                                MDN_var4)
-            except:
-                print('target:', target)
-                print('output:', output)
+            loss = MDN_loss_fn(target, pi, MDN_var1, MDN_var2, MDN_var3,
+                            MDN_var4)
             return loss
 
     def repeatAlongDim(self, var, axis, repeat_times, interleave=False):
@@ -963,7 +959,6 @@ class md_arnn():
                     MDN_kernels = False
                     MDN_loss_fn = None
                     MDN_dist = None
-
                 loss_fwd = self.getLoss(
                     output_batch,
                     target_batch,
@@ -974,6 +969,7 @@ class md_arnn():
                     MDN_loss_fn=MDN_loss_fn,
                     MDN_dist=MDN_dist,
                 )
+
             else:
                 loss_fwd = self.torchZero()
 
@@ -1076,6 +1072,7 @@ class md_arnn():
                     MDN_loss_fn=MDN_loss_fn,
                     MDN_dist=MDN_dist,
                 )
+                
             else:
                 loss_auto_fwd = self.torchZero()
 
@@ -1100,6 +1097,7 @@ class md_arnn():
                 # loss_batch.requires_grad = True
                 # loss_batch.backward(retain_graph=True)
                 loss_batch.backward()
+                # print(self.model.ENCODER[0].weight.grad)
                 self.optimizer.step()
                 # if self.optimizer_str == "sgd": self.scheduler.step()
 
@@ -1348,7 +1346,7 @@ class md_arnn():
         if self.rounds_iter > 0:
             # RESTORE THE MODEL
             print("RESTORING PYTORCH MODEL")
-            self.getModel().load_state_dict(torch.load(self.saving_model_path))
+            self.getModel().load_state_dict(torch.load(self.saving_model_path), strict=False)
         else:
             # SAVING THE INITIAL MODEL
             print("SAVING THE INITIAL MODEL")
@@ -1362,6 +1360,7 @@ class md_arnn():
             self.rounds_iter, self.learning_rate_round))
 
         time_loss_epoch_start = time.time()
+        # torch.autograd.set_detect_anomaly(True)
         losses_train, ifp_train, time_train = self.trainEpoch(
             data_loader_train, is_train=False)
         if self.iterative_loss_validation: assert (ifp_train == 1.0)
@@ -1527,12 +1526,12 @@ class md_arnn():
             if not in_cpu and self.gpu:
                 print("# LOADING model in GPU.")
                 self.getModel().load_state_dict(
-                    torch.load(self.saving_model_path))
+                    torch.load(self.saving_model_path), strict=False)
             else:
                 print("# LOADING model in CPU...")
                 self.getModel().load_state_dict(
                     torch.load(self.saving_model_path,
-                               map_location=torch.device('cpu')))
+                               map_location=torch.device('cpu')), strict=False)
         except Exception as inst:
             print(
                 "MODEL {:s} NOT FOUND. Is hippo mounted? Are you testing ? Did you already train the model?"

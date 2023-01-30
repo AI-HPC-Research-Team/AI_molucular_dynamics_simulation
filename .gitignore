@@ -6,3 +6,6 @@ core
 *.xyz
 .vscode/
 .DS_Store
+*.ipynb
+*.pyc
+*rama.xvg*

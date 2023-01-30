@@ -185,6 +185,10 @@ class scalerBAD(object):
         self.data_min_angles = data_min_angles - slack * np.abs(range_angles)
         self.data_max_angles = data_max_angles + slack * np.abs(range_angles)
 
+        # range_dihedrals = data_max_dihedrals - data_min_dihedrals
+        # self.data_min_dihedrals = data_min_dihedrals - slack * np.abs(range_dihedrals)
+        # self.data_max_dihedrals = data_max_dihedrals + slack * np.abs(range_dihedrals)
+        
         self.data_min = np.concatenate(
             (self.data_min_bonds, self.data_min_angles), axis=0)
         self.data_max = np.concatenate(
