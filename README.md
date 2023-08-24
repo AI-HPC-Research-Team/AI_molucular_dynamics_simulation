@@ -37,6 +37,7 @@ Taking the CALMODULIN molecule as an example, the following modifications need t
 <li>Modify the MDN-ARNN-Local.sh</li> 
 <li>Modify the python file</li>
 </ol> 
+
 ### MDN-ARNN-Local.sh
 Modify the following parameter in file 'MDN-ARNN-Local.sh' according to the new molecule:
 ```sh
