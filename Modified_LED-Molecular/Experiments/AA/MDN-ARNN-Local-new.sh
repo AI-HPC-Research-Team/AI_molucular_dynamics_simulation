@@ -8,7 +8,7 @@ cd ../../Methods
 #######################
 # SYSTEM PARAMETERS 
 #######################
-CUDA_DEVICES=1
+CUDA_DEVICES=0
 system_name=Alanine
 input_dim=24
 
@@ -25,6 +25,8 @@ latent_state_dim=1
 ##############################################
 # TRAINING
 ##############################################
+batch_norm=1
+clip_grad=1
 weight_decay=0.0
 scaler=MinMaxZeroOne
 batch_size=32 
@@ -35,7 +37,7 @@ make_videos=0
 
 retrain=0
 # max_epochs=1000
-max_epochs=50
+max_epochs=100
 
 ##############################################
 # MDN AT AUTOENCODER OUTPUT
@@ -77,52 +79,53 @@ num_test_ICS=248
 
 write_to_log=1
 
-CUDA_VISIBLE_DEVICES=$CUDA_DEVICES python3 RUN.py md_arnn \
---mode $mode \
---system_name $system_name \
---cudnn_benchmark 1 \
---write_to_log $write_to_log \
---input_dim $input_dim \
---output_forecasting_loss $output_forecasting_loss \
---latent_forecasting_loss $latent_forecasting_loss \
---reconstruction_loss $reconstruction_loss \
---scaler $scaler \
---sequence_length $sequence_length \
---learning_rate $learning_rate \
---weight_decay $weight_decay \
---batch_size $batch_size \
---overfitting_patience $overfitting_patience \
---max_epochs $max_epochs \
---max_rounds $max_rounds \
---random_seed 100 \
---display_output 1 \
---retrain $retrain \
---make_videos $make_videos \
---activation_str_general $activation_str_general \
---AE_layers_num $AE_layers_num \
---AE_layers_size $AE_layers_size \
---AE_residual $AE_residual \
---latent_state_dim $latent_state_dim  \
---MDN_sigma_max $MDN_sigma_max \
---MDN_weight_sharing $MDN_weight_sharing \
---MDN_multivariate $MDN_multivariate \
---MDN_kernels $MDN_kernels \
---MDN_hidden_units $MDN_hidden_units \
---MDN_fixed_kernels $MDN_fixed_kernels \
---MDN_train_kernels $MDN_train_kernels \
---MDN_distribution $MDN_distribution \
---MDN_multivariate_covariance_layer $MDN_multivariate_covariance_layer \
---compute_spectrum 0 \
---prediction_horizon $prediction_horizon \
---num_test_ICS $num_test_ICS \
---test_on_train 1 \
---test_on_val 1 \
---test_on_test 0 \
---plot_state_distributions 0 \
---plot_state_distributions_system 1 \
---plot_system 1 \
---plot_testing_ics_examples 0 \
---gpu_monitor_every 2000
+# CUDA_VISIBLE_DEVICES=$CUDA_DEVICES python3 RUN.py md_arnn \
+# --mode $mode \
+# --batch_norm $batch_norm \
+# --system_name $system_name \
+# --cudnn_benchmark 1 \
+# --write_to_log $write_to_log \
+# --input_dim $input_dim \
+# --output_forecasting_loss $output_forecasting_loss \
+# --latent_forecasting_loss $latent_forecasting_loss \
+# --reconstruction_loss $reconstruction_loss \
+# --scaler $scaler \
+# --sequence_length $sequence_length \
+# --learning_rate $learning_rate \
+# --weight_decay $weight_decay \
+# --batch_size $batch_size \
+# --overfitting_patience $overfitting_patience \
+# --max_epochs $max_epochs \
+# --max_rounds $max_rounds \
+# --random_seed 100 \
+# --display_output 1 \
+# --retrain $retrain \
+# --make_videos $make_videos \
+# --activation_str_general $activation_str_general \
+# --AE_layers_num $AE_layers_num \
+# --AE_layers_size $AE_layers_size \
+# --AE_residual $AE_residual \
+# --latent_state_dim $latent_state_dim  \
+# --MDN_sigma_max $MDN_sigma_max \
+# --MDN_weight_sharing $MDN_weight_sharing \
+# --MDN_multivariate $MDN_multivariate \
+# --MDN_kernels $MDN_kernels \
+# --MDN_hidden_units $MDN_hidden_units \
+# --MDN_fixed_kernels $MDN_fixed_kernels \
+# --MDN_train_kernels $MDN_train_kernels \
+# --MDN_distribution $MDN_distribution \
+# --MDN_multivariate_covariance_layer $MDN_multivariate_covariance_layer \
+# --compute_spectrum 0 \
+# --prediction_horizon $prediction_horizon \
+# --num_test_ICS $num_test_ICS \
+# --test_on_train 1 \
+# --test_on_val 0 \
+# --test_on_test 0 \
+# --plot_state_distributions 0 \
+# --plot_state_distributions_system 1 \
+# --plot_system 1 \
+# --plot_testing_ics_examples 0 \
+# --gpu_monitor_every 2000
 
 
 # mode=all
@@ -199,8 +202,6 @@ train_rnn_only=1
 
 sequence_length=400
 
-
-
 rnn_layers_num=1
 rnn_layers_size=20
 
@@ -220,6 +221,8 @@ RNN_MDN_multivariate_covariance_layer=0
 
 CUDA_VISIBLE_DEVICES=$CUDA_DEVICES python3 RUN.py md_arnn \
 --mode $mode \
+--batch_norm $batch_norm \
+--clip_grad $clip_grad \
 --system_name $system_name \
 --cudnn_benchmark 1 \
 --write_to_log $write_to_log \
@@ -253,7 +256,7 @@ CUDA_VISIBLE_DEVICES=$CUDA_DEVICES python3 RUN.py md_arnn \
 --MDN_train_kernels $MDN_train_kernels \
 --MDN_distribution $MDN_distribution \
 --MDN_multivariate_covariance_layer $MDN_multivariate_covariance_layer \
---RNN_cell_type lstm \
+--RNN_cell_type gru \
 --RNN_layers_num $rnn_layers_num  \
 --RNN_layers_size $rnn_layers_size  \
 --RNN_activation_str tanh \
@@ -272,11 +275,11 @@ CUDA_VISIBLE_DEVICES=$CUDA_DEVICES python3 RUN.py md_arnn \
 --RNN_MDN_multivariate_covariance_layer $RNN_MDN_multivariate_covariance_layer \
 --prediction_horizon $prediction_horizon \
 --num_test_ICS $num_test_ICS \
---test_on_train 0 \
---test_on_val 0 \
+--test_on_train 1 \
+--test_on_val 1 \
 --test_on_test 1 \
 --plot_state_distributions 0 \
---plot_state_distributions_system 1 \
+--plot_state_distributions_system 0 \
 --plot_latent_dynamics_comparison_system 1 \
 --plot_system 1 \
 --plot_testing_ics_examples 1 \

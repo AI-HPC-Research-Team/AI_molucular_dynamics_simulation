@@ -19,6 +19,7 @@ import os
 import random
 import time
 from tqdm import tqdm
+# import apex as apm 
 
 # UTILITIES
 from .. import Utils as utils
@@ -26,6 +27,7 @@ from .. import Systems as systems
 
 # NETWORKS
 from . import md_arnn_model
+from . import bn_md_arnn_model
 
 # PRINTING
 from functools import partial
@@ -42,6 +44,8 @@ class md_arnn():
 
         # The system to which the model is applied on
         self.system_name = params["system_name"]
+        self.bn = params["batch_norm"]
+        self.clip_grad = params['clip_grad']
         # Checking the system name
         utils.checkSystemName(self)
         # The save format
@@ -200,7 +204,8 @@ class md_arnn():
 
         # The activation string of the RNN
         self.RNN_activation_str = params['RNN_activation_str']
-
+        
+        self.rnn_iterative_training = params['rnn_iterative_training']
         ##################################################################
         # DIMENSION OF THE INPUT
         ##################################################################
@@ -312,8 +317,11 @@ class md_arnn():
                 params["latent_state_dim"] >
                 0) and not self.AE_perm_invariant_latent_dim:
             # Parsing the ENCODER layers
-            self.layers_encoder = [self.params["AE_layers_size"]
-                                   ] * self.params["AE_layers_num"]
+            if self.params["AE_layers_size"] != 0:
+                self.layers_encoder = [self.params["AE_layers_size"]
+                                    ] * self.params["AE_layers_num"]
+            else:
+                self.layers_encoder = self.params['AE_layers']
             self.layers_encoder_aug = self.layers_encoder.copy()
             self.layers_encoder_aug.insert(0, self.params["input_dim"])
             if not self.AE_convolutional:
@@ -335,10 +343,15 @@ class md_arnn():
         elif params["latent_state_dim"] is not None and (
                 params["latent_state_dim"] >
                 0) and self.AE_perm_invariant_latent_dim:
-            self.layers_encoder = [self.params["AE_layers_size"]
-                                   ] * self.params["AE_layers_num"]
-            self.layers_perm_inv = [self.params["AE_layers_size"]
+            if self.params["AE_layers_size"] != 0:
+                self.layers_encoder = [self.params["AE_layers_size"]
                                     ] * self.params["AE_layers_num"]
+                self.layers_perm_inv = [self.params["AE_layers_size"]
+                                    ] * self.params["AE_layers_num"]
+            else:
+                self.layers_encoder = self.params['AE_layers']
+                self.layers_perm_inv = self.params['AE_layers']
+            
             self.layers_encoder_aug = self.layers_encoder.copy()
             self.layers_perm_inv_aug = self.layers_perm_inv.copy()
 
@@ -405,8 +418,11 @@ class md_arnn():
         self.saving_model_path = self.getModelDir() + "/model"
 
         self.makeDirectories()
+        if self.bn:
+            self.model = bn_md_arnn_model.md_arnn_model(params, self)
 
-        self.model = md_arnn_model.md_arnn_model(params, self)
+        else:
+            self.model = md_arnn_model.md_arnn_model(params, self)
         self.model.printModuleList()
 
         # PRINT PARAMS BEFORE PARALLELIZATION
@@ -421,9 +437,11 @@ class md_arnn():
 
         if self.gpu:
             print("USING CUDA -> SENDING THE MODEL TO THE GPU.")
-            self.model.sendModelToCuda()
+            
             if self.device_count > 1:
-                raise ValueError("Muli-GPU training not implemented. Before launching the python script, set CUDA_DEVICES=0, and run with CUDA_VISIBLE_DEVICES=$CUDA_DEVICES python3 ...")
+                self.model.sendModelToMultiCuda()
+            else:
+                self.model.sendModelToCuda()
 
         # Saving some info file for the model
         data = {
@@ -541,6 +559,7 @@ class md_arnn():
             #     keys.update({
             #         'iterative_loss_length_weight': '-W_',
             #     })
+            keys.update({'rnn_iterative_training':'-ITT-'})
             if self.params["iterative_loss_schedule_and_gradient"] not in [
                     "none"
             ]:
@@ -580,15 +599,24 @@ class md_arnn():
         return keys
 
     def createModelName(self):
-        keys = self.getKeysInModelName()
-        str_ = "GPU-" * self.gpu + "ARNN"
+        keys = self.getKeysInModelName()    
+        if self.bn:
+            str_ = "BN-" + "GPU-" * self.gpu + "ARNN"
+        else:
+            str_ = "GPU-" * self.gpu + "ARNN"
+        if self.clip_grad and self.has_rnn:
+            str_ = 'CLIP-' + str_
         for key in keys:
             str_ += keys[key] + "{:}".format(self.params[key])
         return str_
 
     def createAutoencoderName(self):
         keys = self.getKeysInModelName(with_rnn=False)
-        str_ = "GPU-" * self.gpu + "ARNN"
+        if self.bn:
+            str_ = "BN-" + "GPU-" * self.gpu + "ARNN"
+        else:
+            str_ = "GPU-" * self.gpu + "ARNN"
+
         for key in keys:
             str_ += keys[key] + "{:}".format(self.params[key])
         return str_
@@ -704,7 +732,7 @@ class md_arnn():
 
     def sendHiddenStateToGPU(self, h_state):
         if self.has_rnn:
-            return h_state.cuda()
+            return h_state.cuda(device=0)
         else:
             return h_state
 
@@ -785,7 +813,7 @@ class md_arnn():
             MDN_var1 = MDN_var1.view(K * T, N_MDN_O, NUM_KERNELS)
             MDN_var2 = MDN_var2.view(K * T, N_MDN_O, NUM_KERNELS)
             pi = pi.view(K * T, N_MDN_O, NUM_KERNELS)
-        elif MDN_dist in ["alanine", "trp"]:
+        elif MDN_dist in ["alanine", "trp", "calmodulin"]:
             K_, T_, N_MDN_O_BONDS, NUM_KERNELS = MDN_var1.size()
             K_, T_, N_MDN_O_ANGLES, NUM_KERNELS = MDN_var3.size()
             N_MDN_O = N_MDN_O_BONDS + N_MDN_O_ANGLES
@@ -882,8 +910,8 @@ class md_arnn():
             target_batch = self.torch_dtype(target_batch)
             if self.gpu:
                 # SENDING THE TENSORS TO CUDA
-                input_batch = input_batch.cuda()
-                target_batch = target_batch.cuda()
+                input_batch = input_batch.cuda(device=0)
+                target_batch = target_batch.cuda(device=0)
                 initial_hidden_states = self.sendHiddenStateToGPU(
                     initial_hidden_states)
 
@@ -930,7 +958,6 @@ class md_arnn():
                 horizon=None,
                 input_is_latent=False,
             )
-
             if self.output_forecasting_loss:
 
                 # The output is:
@@ -1010,7 +1037,7 @@ class md_arnn():
                     # print(len(latent_states_pred))
                     # print(ark)
                     latent_states_pred = latent_states_pred if MDN_dist in [
-                        "alanine", "trp"
+                        "alanine", "trp", "calmodulin"
                     ] else latent_states_pred[:3]
                     outputs = [
                         temp[:, :-1].contiguous()
@@ -1097,7 +1124,11 @@ class md_arnn():
                 # loss_batch.requires_grad = True
                 # loss_batch.backward(retain_graph=True)
                 loss_batch.backward()
-                # print(self.model.ENCODER[0].weight.grad)
+                if self.has_rnn and (self.model.RNN[0].RNN_cell.weight_ih.grad>10).any():
+                    print(self.model.RNN[0].RNN_cell.weight_ih.grad.max())
+                # print(self.model.RNN[0].weight.grad)
+                if self.has_rnn and self.clip_grad:
+                    torch.nn.utils.clip_grad_norm_(self.model_parameters, max_norm=2)
                 self.optimizer.step()
                 # if self.optimizer_str == "sgd": self.scheduler.step()
 
@@ -1209,7 +1240,8 @@ class md_arnn():
         self.time_kernels = self.initializeTimeKernels()
 
         self.declareOptimizer(self.learning_rate)
-
+        # self.model, self.optimizer = amp.initialize(self.model, self.optimizer, opt_level='01')
+        
         # Check if retraining
         if self.retrain == 1:
             print("RESTORING MODEL")
@@ -1317,13 +1349,14 @@ class md_arnn():
         return 0
 
     def getModel(self):
-        if (not self.gpu) or (self.device_count <= 1):
-            return self.model
-        elif self.gpu and self.device_count > 1:
-            return self.model.module
-        else:
-            raise ValueError("Value of self.gpu {:} not recognized.".format(
-                self.gpu))
+        # if (not self.gpu) or (self.device_count <= 1):
+        #     return self.model
+        # elif self.gpu and self.device_count > 1:
+        #     return self.model.module
+        # else:
+        #     raise ValueError("Value of self.gpu {:} not recognized.".format(
+        #         self.gpu))
+        return self.model
 
     def trainRound(self, data_loader_train, data_loader_val):
         # Check if retraining of a model is requested else random initialization of the weights
@@ -1369,6 +1402,13 @@ class md_arnn():
                                                         is_train=False)
         if self.iterative_loss_validation: assert (ifp_val == 1.0)
 
+        # losses_train = [0,0,0,0]
+        # losses_val = [0,0,0,0]
+        # time_train = 100
+        # time_val = 100
+        # ifp_train = 1
+        # ifp_val = 1
+        
         time_loss_epoch_end = time.time()
         time_loss_epoch = time_loss_epoch_end - time_loss_epoch_start
         self.time_kernels["times_loss_epoch"].append(time_loss_epoch)
@@ -1433,8 +1473,7 @@ class md_arnn():
                            self.saving_model_path)
 
             if epochs_in_round > self.overfitting_patience:
-                if all(self.min_val_total_loss <
-                       rnn_loss_round_val_vec[-self.overfitting_patience:]):
+                if all([self.min_val_total_loss < loss for loss in rnn_loss_round_val_vec[-self.overfitting_patience:]]):
                     self.previous_round_converged = True
                     break
 
@@ -1797,7 +1836,7 @@ class md_arnn():
             input_sequence = self.torch_dtype(input_sequence)
             if self.gpu:
                 # SENDING THE TENSORS TO CUDA
-                input_sequence = input_sequence.cuda()
+                input_sequence = input_sequence.cuda(device=0)
 
             _, _, latent_states, _, _, input_decoded, _ = self.model.forward(
                 input_sequence, initial_hidden_states, is_train=False)
@@ -2123,7 +2162,7 @@ class md_arnn():
 
         if self.gpu:
             # SENDING THE TENSORS TO CUDA
-            warmup_data_input = warmup_data_input.cuda()
+            warmup_data_input = warmup_data_input.cuda(device=0)
             initial_hidden_states = self.sendHiddenStateToGPU(
                 initial_hidden_states)
 
@@ -2175,7 +2214,7 @@ class md_arnn():
         input_t = self.torch_dtype(input_t)
 
         if self.gpu:
-            input_t = input_t.cuda()
+            input_t = input_t.cuda(device=0)
             last_hidden_state = self.sendHiddenStateToGPU(last_hidden_state)
 
         # In case of multiscale modeling, prepare the micro_solver

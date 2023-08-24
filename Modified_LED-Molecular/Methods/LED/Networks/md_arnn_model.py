@@ -21,7 +21,8 @@ from functools import partial
 print = partial(print, flush=True)
 
 import time
-from tqdm import tqdm  
+from tqdm import tqdm
+
 
 class md_arnn_model(nn.Module):
     def __init__(self, params, model):
@@ -62,8 +63,6 @@ class md_arnn_model(nn.Module):
         # for modules in [self.ENCODER, self.DECODER, self.RNN, self.RNN_OUTPUT]:
         for modules in self.module_list:
             for module in modules:
-                if isinstance(module, nn.BatchNorm1d):
-                    continue
                 for name, param in module.named_parameters():
                     # print(name)
                     # INITIALIZING RNN, GRU CELLS
@@ -92,11 +91,7 @@ class md_arnn_model(nn.Module):
                         param.data.fill_(0)
 
                     elif 'weight' in name:
-                        # torch.nn.init.xavier_uniform_(param.data) #origin
-                        try:
-                            torch.nn.init.kaiming_uniform_(param.data)
-                        except:
-                            print(module)
+                        torch.nn.init.xavier_uniform_(param.data)
 
                     elif 'bias' in name:
                         param.data.fill_(0)
@@ -141,8 +136,6 @@ class md_arnn_model(nn.Module):
                         nn.Linear(self.parent.layers_encoder_aug[ln],
                                   self.parent.layers_encoder_aug[ln + 1],
                                   bias=True))
-                    self.ENCODER.append(nn.BatchNorm1d(self.parent.layers_encoder_aug[ln + 1]))
-
             else:
                 raise ValueError("Not implemented.")
                 encoder = conv_models.getEncoderModel(self.parent)
@@ -258,7 +251,6 @@ class md_arnn_model(nn.Module):
                     nn.Linear(self.parent.layers_decoder_aug[ln],
                               self.parent.layers_decoder_aug[ln + 1],
                               bias=True))
-                self.DECODER.append(nn.BatchNorm1d(self.parent.layers_decoder_aug[ln + 1]))
 
         self.module_list = [
             self.DROPOUT, self.PERM_INV, self.ENCODER, self.DECODER, self.RNN,
@@ -407,7 +399,7 @@ class md_arnn_model(nn.Module):
             assert (T > 0)
             assert (horizon > 0)
             time_latent_prop = 0.0
-            for t in tqdm(range(horizon)):
+            for t in range(horizon):
                 # print("t")
                 # print(t)
                 # print(input_is_latent)
@@ -465,11 +457,11 @@ class md_arnn_model(nn.Module):
                                     output_MDN_var1 = output_MDN_var1[:, 0]
                                     output_MDN_var2 = output_MDN_var2[:, 0]
                                     if self.parent.MDN_distribution in [
-                                            "alanine", "trp", "AA"
+                                            "alanine", "trp", "calmodulin"
                                     ]:
                                         output_MDN_var3 = output_MDN_var3[:, 0]
                                     if self.parent.MDN_distribution in [
-                                            "alanine", "trp", "AA"
+                                            "alanine", "trp", "calmodulin"
                                     ]:
                                         output_MDN_var4 = output_MDN_var4[:, 0]
                                     raise ValueError("Not implemented.")
@@ -491,10 +483,10 @@ class md_arnn_model(nn.Module):
                     inputs_decoded_pi.append(input_decoded_pi[:, 0])
                     inputs_decoded_MDN_var2.append(input_decoded_MDN_var2[:,
                                                                           0])
-                    if self.parent.MDN_distribution in ["alanine", "trp", "AA"]:
+                    if self.parent.MDN_distribution in ["alanine", "trp", "calmodulin"]:
                         inputs_decoded_MDN_var3.append(
                             input_decoded_MDN_var3[:, 0])
-                    if self.parent.MDN_distribution in ["alanine", "trp", "AA"]:
+                    if self.parent.MDN_distribution in ["alanine", "trp", "calmodulin"]:
                         inputs_decoded_MDN_var4.append(
                             input_decoded_MDN_var4[:, 0])
 
@@ -523,10 +515,10 @@ class md_arnn_model(nn.Module):
                     1, 0).contiguous()
                 inputs_decoded_MDN_var2 = torch.stack(
                     inputs_decoded_MDN_var2).transpose(1, 0).contiguous()
-                if self.parent.MDN_distribution in ["alanine", "trp", "AA"]:
+                if self.parent.MDN_distribution in ["alanine", "trp", "calmodulin"]:
                     inputs_decoded_MDN_var3 = torch.stack(
                         inputs_decoded_MDN_var3).transpose(1, 0).contiguous()
-                if self.parent.MDN_distribution in ["alanine", "trp", "AA"]:
+                if self.parent.MDN_distribution in ["alanine", "trp", "calmodulin"]:
                     inputs_decoded_MDN_var4 = torch.stack(
                         inputs_decoded_MDN_var4).transpose(1, 0).contiguous()
 
@@ -540,10 +532,10 @@ class md_arnn_model(nn.Module):
                         1, 0).contiguous()
                     outputs_MDN_var2 = torch.stack(outputs_MDN_var2).transpose(
                         1, 0).contiguous()
-                    if self.parent.MDN_distribution in ["alanine", "trp", "AA"]:
+                    if self.parent.MDN_distribution in ["alanine", "trp", "calmodulin"]:
                         outputs_MDN_var3 = torch.stack(
                             outputs_MDN_var3).transpose(1, 0).contiguous()
-                    if self.parent.MDN_distribution in ["alanine", "trp", "AA"]:
+                    if self.parent.MDN_distribution in ["alanine", "trp", "calmodulin"]:
                         outputs_MDN_var4 = torch.stack(
                             outputs_MDN_var4).transpose(1, 0).contiguous()
                     outputs = [
@@ -820,10 +812,10 @@ class md_arnn_model(nn.Module):
                     1, 0).contiguous()
                 inputs_decoded_MDN_var2 = inputs_decoded_MDN_var2.transpose(
                     1, 0).contiguous()
-                if self.parent.MDN_distribution in ["alanine", "trp", "AA"]:
+                if self.parent.MDN_distribution in ["alanine", "trp", "calmodulin"]:
                     inputs_decoded_MDN_var3 = inputs_decoded_MDN_var3.transpose(
                         1, 0).contiguous()
-                if self.parent.MDN_distribution in ["alanine", "trp", "AA"]:
+                if self.parent.MDN_distribution in ["alanine", "trp", "calmodulin"]:
                     inputs_decoded_MDN_var4 = inputs_decoded_MDN_var4.transpose(
                         1, 0).contiguous()
                 inputs_decoded = [
@@ -878,7 +870,7 @@ class md_arnn_model(nn.Module):
                         axis=0,
                         repeat_times=num_particles,
                         interleave=True)
-            elif distribution in ["alanine", "trp", "AA"]:
+            elif distribution in ["alanine", "trp", "calmodulin"]:
                 MDN_output_dim_normal = self.DECODER[-1].output_dim_normal
                 MDN_output_dim_von_mishes = self.DECODER[
                     -1].output_dim_von_mishes
@@ -920,10 +912,10 @@ class md_arnn_model(nn.Module):
             outputs_pi = outputs_pi.transpose(1, 0).contiguous()
             outputs_MDN_var1 = outputs_MDN_var1.transpose(1, 0).contiguous()
             outputs_MDN_var2 = outputs_MDN_var2.transpose(1, 0).contiguous()
-            if distribution in ["alanine", "trp", "AA"]:
+            if distribution in ["alanine", "trp", "calmodulin"]:
                 outputs_MDN_var3 = outputs_MDN_var3.transpose(1,
                                                               0).contiguous()
-            if distribution in ["alanine", "trp", "AA"]:
+            if distribution in ["alanine", "trp", "calmodulin"]:
                 outputs_MDN_var4 = outputs_MDN_var4.transpose(1,
                                                               0).contiguous()
             outputs = [
@@ -1009,7 +1001,7 @@ class md_arnn_model(nn.Module):
                     output = self.DROPOUT[0](output)
                 output = self.constructPermInvFeatures(output)
 
-            for l in range(len(self.ENCODER)//2):
+            for l in range(len(self.ENCODER)):
                 # In convolutional autoencoders, add the residual connections 0-2, 2-4, 4-6 (the dimension remains the same)
                 # In normal autoencoder, add the residual connections 1-3, 3-5, 5-7
                 if (self.parent.AE_convolutional and
@@ -1033,10 +1025,9 @@ class md_arnn_model(nn.Module):
                     layer_prev = l
                 if self.parent.AE_convolutional:
                     output = pad_circular(output, self.padding)
-                output = self.ENCODER[2*l](output)
-                output = self.ENCODER[2*l+1](output)
-                
-                if l < len(self.ENCODER)//2 - 1:
+                output = self.ENCODER[l](output)
+
+                if l < len(self.ENCODER) - 1:
                     output = self.activation_general(output)
                 output = self.DROPOUT[0](output)
 
@@ -1062,7 +1053,7 @@ class md_arnn_model(nn.Module):
             # print(input_t.size())
             # print(ark)
             # print(len(self.DECODER))
-            for l in range(len(self.DECODER)//2+1):
+            for l in range(len(self.DECODER)):
                 # print(output.size())
                 if (self.parent.AE_convolutional and
                     (l > 0
@@ -1083,16 +1074,14 @@ class md_arnn_model(nn.Module):
 
                 # print(output)
                 # print(output.size())
-                output = self.DECODER[2*l](output)
-                
-                
-                if l < len(self.DECODER)//2:
+                output = self.DECODER[l](output)
+
+                if l < len(self.DECODER) - 1:
                     # NO ACTIVATION AND DROPOUT IN THE LAST LAYER
-                    output = self.DECODER[2*l+1](output)
                     output = self.activation_general(output)
                     output = self.DROPOUT[0](output)
                     # print("layer output size {:}".format(output.size()))
-                elif l == len(self.DECODER)//2:  #
+                elif l == len(self.DECODER) - 1:  #
                     # LAST LAYER OF DECODER
                     if self.parent.MDN_bool:
                         pi, MDN_var1, MDN_var2, MDN_var3, MDN_var4 = output
@@ -1119,9 +1108,9 @@ class md_arnn_model(nn.Module):
             pi_ = torch.stack(pi_)
             MDN_var1_ = torch.stack(MDN_var1_)
             MDN_var2_ = torch.stack(MDN_var2_)
-            if self.parent.MDN_distribution in ["alanine", "trp", "AA"]:
+            if self.parent.MDN_distribution in ["alanine", "trp", "calmodulin"]:
                 MDN_var3_ = torch.stack(MDN_var3_)
-            if self.parent.MDN_distribution in ["alanine", "trp", "AA"]:
+            if self.parent.MDN_distribution in ["alanine", "trp", "calmodulin"]:
                 MDN_var4_ = torch.stack(MDN_var4_)
             return [pi_, MDN_var1_, MDN_var2_, MDN_var3_, MDN_var4_]
         else:

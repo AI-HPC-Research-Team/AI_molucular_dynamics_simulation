@@ -36,7 +36,8 @@ def checkSystemName(model):
             "Leuven",
             "Darwin",
             "toy", #new dataset
-            "AA"
+            "AA",
+            "CALMODULIN"
     ]:
         isGood = True
 

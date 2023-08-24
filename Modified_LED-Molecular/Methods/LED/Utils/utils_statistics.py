@@ -79,7 +79,20 @@ def evaluate3DIntegral(values, x, y, z):
     assert (dz == np.shape(z)[0])
     return simps(simps([simps(value, x) for value in values], y), z)
 
-
+def evaluateNDIntegral(values, centers):
+    nbins = np.shape(values)
+    dim = len(nbins)
+    for i in range(dim):
+        assert (nbins[i] == np.shape(centers[i])[0])
+    
+    for i in range(dim):
+        if i == 0:
+            tmp = [simps(value, centers[i]) for value in values]
+        else:
+            tmp = simps(tmp, centers[i])
+            
+    return tmp
+    
 def get_density(positions, nbins, bounds):
     if len(np.shape(positions)) == 1:
         # 1-D case (no channels)
@@ -126,9 +139,8 @@ def get_density(positions, nbins, bounds):
         H, edges = np.histogramdd(positions,
                                   nbins,
                                   density=True,
-                                  range=[[bounds[0], bounds[1]],
-                                         [bounds[0], bounds[1]],
-                                         [bounds[0], bounds[1]]])
+                                  range=bounds)
+        
         xedges = edges[0]
         yedges = edges[1]
         zedges = edges[2]
@@ -136,6 +148,17 @@ def get_density(positions, nbins, bounds):
         ycenters = (yedges[:-1] + yedges[1:]) / 2
         zcenters = (zedges[:-1] + zedges[1:]) / 2
         grid_centers = np.array([xcenters, ycenters, zcenters])
+        return H, grid_centers
+    elif (len(np.shape(positions)) == 2):
+        H, edges = np.histogramdd(positions,
+                                  nbins,
+                                  density=True,
+                                  range=bounds)
+        dim = len(bounds)
+        centers = []
+        for i in range(dim):
+            centers.append(edges[i][:-1] + edges[i][1:] / 2 )
+        grid_centers = np.array(centers)
         return H, grid_centers
     else:
         raise ValueError("Not implemented!")
@@ -175,4 +198,6 @@ def evaluateL1HistErrorVector(data1, data2, nbins, bounds):
         # 3-D case
         error = evaluate3DIntegral(error_vec, grid_centers1[0],
                                    grid_centers1[1], grid_centers1[2])
+    elif (len(np.shape(data1)) == 2):
+        error = evaluateNDIntegral(error_vec, grid_centers1)
     return error, error_vec, density1, density2, grid_centers1

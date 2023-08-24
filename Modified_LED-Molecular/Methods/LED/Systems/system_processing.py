@@ -27,6 +27,7 @@ from .BMP import utils_processing_bmp as utils_processing_bmp
 from .KS import utils_processing_ks as utils_processing_ks
 from .FHN import utils_processing_fhn as utils_processing_fhn
 from .CGW import utils_processing_cgw as utils_processing_cgw
+from .CALMODULIN import utils_processing_calmodulin
 
 ######################################################
 ## PLOTTING UTILITIES FOR EACH SYSTEM
@@ -37,7 +38,7 @@ from .TRP import utils_plotting_trp as utils_plotting_trp
 from .BMP import utils_plotting_bmp as utils_plotting_bmp
 from .KS import utils_plotting_ks as utils_plotting_ks
 from .CGW import utils_plotting_cgw as utils_plotting_cgw
-
+from .CALMODULIN import utils_plotting_calmodulin
 
 def AD3Ddatasets():
     temp = [
@@ -430,8 +431,7 @@ def getSystemDataInfo(model):
         })
         if model.params["truncate_data"] == 1:
             data_info_dict.update({'truncate': [41, 1000]})
-
-    elif model.system_name == "toy":
+    elif model.system_name == "CALMODULIN":
         import numpy as np
         import os.path
         # Checking if the necessary files for scaler exist
@@ -439,28 +439,27 @@ def getSystemDataInfo(model):
                 model.data_path_gen + "/data_min_bonds.txt",
                 model.data_path_gen + "/data_max_bonds.txt",
                 model.data_path_gen + "/data_min_angles.txt",
-                model.data_path_gen + "/data_max_angles.txt"
+                model.data_path_gen + "/data_max_angles.txt",
         ]:
             if not os.path.isfile(fname):
                 raise ValueError(
-                        "Tried to find file {:} to load the scaler. File not found."
-                        .format(fname))
+                    "Tried to find file {:} to load the scaler. File not found."
+                    .format(fname))
         # ////////////////////////
         # // Columns of BAD.txt are:
-        # // 1    - 2012 (2012 bonds)
-        # // 2013  - 4722 (2710 angles)
-        # // 4723 - 7998 (3276 dihedrals)
+        # // 1    - 1150 (1150 bonds)
+        # // 1151  - 2299 (1149 angles)
+        # // 2300  - 3447 (1148 dihedrals)
 
-        min_max = np.loadtxt(fname)
         assert (model.scaler == "MinMaxZeroOne")
         data_info_dict.update({
             'scaler':
             utils.scalerBAD(
                 scaler_type="MinMaxZeroOne",
-                dims_total=7998,
-                dims_bonds=2012,
-                dims_angles=2710,
-                dims_dihedrals=3276,
+                dims_total=3447,
+                dims_bonds=1150,
+                dims_angles=1149,
+                dims_dihedrals=1148,
                 data_min_bonds=np.loadtxt(model.data_path_gen +
                                           "/data_min_bonds.txt"),
                 data_max_bonds=np.loadtxt(model.data_path_gen +
@@ -472,7 +471,7 @@ def getSystemDataInfo(model):
                 slack=0.05,
             ),
             'dt':
-            0.1 * 10e-12,
+            10 * 10e-12,
             'density_plots':
             False,
             'statistics_per_state':
@@ -481,7 +480,7 @@ def getSystemDataInfo(model):
         })
         if model.params["truncate_data"] == 1:
             data_info_dict.update({'truncate': [41, 1000]})
-    
+
     else:
         raise ValueError(
             "Data info for this dataset not found (see system_processing.py script)."
@@ -536,10 +535,9 @@ def addResultsSystem(model, results, statistics, testing_mode, set_name=None):
         # utils_processing_alanine.addResultsSystemAlanineTrainingDataAnalysis(model)
 
         pass
-    elif model.system_name == "TRP":
+    elif model.system_name in ["TRP", "CALMODULIN"]:
         results = utils_processing_trp.addResultsSystemTRP(
             model, results, statistics, testing_mode)
-
     elif model.system_name == "BMP":
         results = utils_processing_bmp.addResultsSystemBMP(
             model, results, statistics, testing_mode)

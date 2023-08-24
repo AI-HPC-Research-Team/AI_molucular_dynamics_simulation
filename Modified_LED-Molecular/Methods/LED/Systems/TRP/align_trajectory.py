@@ -1,8 +1,19 @@
 import MDAnalysis as mda
 from MDAnalysis.analysis import align, rms
+import pdb 
 
 
 if __name__ == "__main__":
+    pdb.set_trace()
+    # 先生成目标参考轨迹文件
+    # 读取ref，unalign文件
+    # 计算未对齐的rmsd
+    
+    # 对齐分子
+    
+    # 计算对齐后的rmsd
+    
+    
     u = mda.Universe('new_topol.gro', 'trp.xtc')
     ref_u = u.copy()
     ref_u.trajectory[0]

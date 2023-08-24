@@ -195,6 +195,9 @@ def new_config(CVsB, CVsA, CVsD):
             if dd4 in find_atoms:
                 print(dihedral)   
             bondID, angleID = find_BA(dd1, dd2, dd3, dd4)
+            assert(bondID < 153)
+            assert(angleID < 152)
+            assert(dd < 151)
             coord = place_atom(atoms[dd1], atoms[dd2], atoms[dd3],
                                 CVsA[angleID], CVsD[dd], CVsB[bondID])
             atoms[dd4] = coord
@@ -231,6 +234,51 @@ def new_config(CVsB, CVsA, CVsD):
     return atoms
 
 
+########################################################
+def remove_com(conf):
+    # calculate center of mass165
+    comp = [0.0, 0.0, 0.0]
+    for i in range(len(conf)):
+        for dim in range(3):
+            comp[dim] += mass[i] * conf[i][dim]
+    for dim in range(3):
+        comp[dim] /= masstotal
+
+    # substract center of mass
+    conf_com = np.zeros((len(conf), 3), float)
+    for i in range(len(conf)):
+        for dim in range(3):
+            conf_com[i, dim] = conf[i][dim] - comp[dim]
+
+    return conf_com
+
+#######################################################################
+def rotationmatrix(coordref, coord):
+
+    assert (coordref.shape[1] == 3)
+    assert (coordref.shape == coord.shape)
+    correlation_matrix = np.dot(np.transpose(coordref), coord)
+    vv, ss, ww = np.linalg.svd(correlation_matrix)
+    is_reflection = (np.linalg.det(vv) * np.linalg.det(ww)) < 0.0
+    #if is_reflection:
+    #print "is_reflection"
+    #vv[-1,:] = -vv[-1,:]
+    #ss[-1] = -ss[-1]
+    #vv[:, -1] = -vv[:, -1]
+    rotation = np.dot(vv, ww)
+
+    confnew = []
+    for i in range(len(coord)):
+        xx = rotation[0][0] * coord[i][0] + rotation[0][1] * coord[i][
+            1] + rotation[0][2] * coord[i][2]
+        yy = rotation[1][0] * coord[i][0] + rotation[1][1] * coord[i][
+            1] + rotation[1][2] * coord[i][2]
+        zz = rotation[2][0] * coord[i][0] + rotation[2][1] * coord[i][
+            1] + rotation[2][2] * coord[i][2]
+        confnew.append((xx, yy, zz))
+
+    return confnew
+
 if __name__ == "__main__":
     import pickle as pk
     import MDAnalysis as mda
@@ -238,12 +286,12 @@ if __name__ == "__main__":
     # import pdb
     # pdb.set_trace()
     
-    DataFilePath = '/workspace/lizt/AI_molucular_dynamics_simulation/Modified_LED-Molecular/Results/TRP/Evaluation_Data/GPU-ARNN-scaler_MinMaxZeroOne-LR_0.001-L2_0.0-MDN_trp-KERN_5-HIDDEN_50-SigmaMax_0.8-DIM_649-AUTO_6x500-ACT_tanh-RES_1-DKP_1-LD_2-C_lstm-R_1x40-SL_400-R-MDN_normal-R-KERN_4-R-HIDDEN_20-R-SMax_0.1/results_iterative_latent_forecasting_train.pickle'
+    DataFilePath = '/workspace/lizt/AI_molucular_dynamics_simulation/Modified_LED-Molecular/Results/TRP/Evaluation_Data/CLIP-BN-GPU-ARNN-scaler_MinMaxZeroOne-LR_0.001-L2_0.0-MDN_trp-KERN_5-HIDDEN_50-SigmaMax_0.8-DIM_456-AUTO_6x500-ACT_tanh-RES_1-DKP_1-LD_2-C_lstm-R_1x40-SL_400-ITT-1-R-MDN_normal-R-KERN_5-R-HIDDEN_20-R-SMax_0.2/results_iterative_latent_forecasting_test.pickle'
     topolFilePath = '/workspace/lizt/AI_molucular_dynamics_simulation/Modified_LED-Molecular/Data/TRP/topol.top'
     
     
     res = pk.load(open(DataFilePath, 'rb'))
-    trajs = res["predictions_all"].reshape(-1, 649)
+    trajs = res["predictions_all"].reshape(-1, 456)
     traj = mda.Universe(topolFilePath, topology_format='ITP')
 
     # 从全原子拓扑图中生成粗粒度原子的universe文件，用于轨迹生成
@@ -262,20 +310,15 @@ if __name__ == "__main__":
     u = mda.Universe.empty(154, 20, atom_resindex=resindices, trajectory=True)
     
     atoms = traj.select_atoms("protein").select_atoms("type N CW C CA CT NA O CB N2 O2 CN N3 C* OH")
-    ori_target_map = dict(zip(atoms.indices, range(atoms.n_atoms)))
-    target_bonds = [(ori_target_map[bond[0]], ori_target_map[bond[1]]) for bond in atoms.bonds.indices if all(a in atoms.indices for a in bond)]
-    target_angles = [(ori_target_map[angle[0]], ori_target_map[angle[1]], ori_target_map[angle[2]]) for angle in atoms.angles.indices if all(a in atoms.indices for a in angle)]
-    target_dihedrals = [(ori_target_map[dihedral[0]], ori_target_map[dihedral[1]], ori_target_map[dihedral[2]], ori_target_map[dihedral[3]]) for dihedral in atoms.dihedrals.indices if all(a in atoms.indices for a in dihedral)]
- 
+    # ori_target_map = dict(zip(atoms.indices, range(atoms.n_atoms)))
+    # target_bonds = [(ori_target_map[bond[0]], ori_target_map[bond[1]]) for bond in atoms.bonds.indices if all(a in atoms.indices for a in bond)]
+    # target_angles = [(ori_target_map[angle[0]], ori_target_map[angle[1]], ori_target_map[angle[2]]) for angle in atoms.angles.indices if all(a in atoms.indices for a in angle)]
+    # target_dihedrals = [(ori_target_map[dihedral[0]], ori_target_map[dihedral[1]], ori_target_map[dihedral[2]], ori_target_map[dihedral[3]]) for dihedral in atoms.dihedrals.indices if all(a in atoms.indices for a in dihedral)]
+     
     
-    u.add_TopologyAttr('bonds', target_bonds)
-    u.add_TopologyAttr('angles', target_angles)
-    u.add_TopologyAttr('dihedrals', target_dihedrals)
-    
-    
-    bond_dim = 160
-    angle_dim = 219
-    dehedral_dim = 270	
+    bond_dim = 153
+    angle_dim = 152
+    dehedral_dim = 151	
     bond_indices = bond_dim
     angle_indices = bond_dim + angle_dim 
     
@@ -321,27 +364,46 @@ if __name__ == "__main__":
     (130,131), (131,132), (131,133), (133,134), (134,135), (135,136), (133,137), (137,138), (138,139), (138,140), (140,141), (141,142), (142,143), (140,144), \
     (144,145), (145,146), (145,147), (147,148), (148,149), (149,150), (148,151), (151,152), (151,153))
 
-    
+    u.add_TopologyAttr('bonds', bonds)
+    u.add_TopologyAttr('angles', angles)
+    u.add_TopologyAttr('dihedrals', dih)    
 
+    atomNames = ["N","C","C","C","O","N","C","O","N","C","C","C","C","C","C","O","N","C","C","C","C","C","C","O","C","C","C","O","N","C","C","C","C","C","C","O","N",\
+    "C","C","C","C","O","N","C","O","N","C","C","C","C","N","C","C","C","C","C","C","C","O","N","C","C","C","C","C","C","O","N","C","C","C","C","C","N","C","O","N", \
+    "C","C","C","O","O","C","O","N","C","C","O","N","C","C","O","N","C","C","C","C","C","O","N","C","C","O","C","O","N","C","C","O","C","O","N","C","C","O","N","C", \
+    "C","C","C","N","C","N","N","C","O","N","C","C","C","C","C","O","N","C","C","C","C","C","O","N","C","C","C","C","C","O","N","C","C","O","C","O","O"]
+
+    atomtypes, mass = [], []
+    for kk in range(len(atomNames)):
+        if atomNames[kk] == "N":
+            atomtypes.append(3)
+            mass.append(14.01)
+        elif atomNames[kk] == "C":
+            atomtypes.append(1)
+            mass.append(12.01)
+        elif atomNames[kk] == "O":
+            atomtypes.append(2)
+            mass.append(16.0)
+    masstotal = np.sum(mass)
     
-    nconflict_b_indices = []
-    for b in bonds:
-        nconflict_b_indices.append(target_bonds.index(b))
+    # nconflict_b_indices = []
+    # for b in bonds:
+    #     nconflict_b_indices.append(target_bonds.index(b))
     
-    nconflict_a_indices = []
-    for a in angles:
-        nconflict_a_indices.append(bond_indices+target_angles.index(a))        
+    # nconflict_a_indices = []
+    # for a in angles:
+    #     nconflict_a_indices.append(bond_indices+target_angles.index(a))        
     
-    nconflict_d_indices = []
-    for d in dih:
-        nconflict_d_indices.append(angle_indices+target_dihedrals.index(d))
+    # nconflict_d_indices = []
+    # for d in dih:
+    #     nconflict_d_indices.append(angle_indices+target_dihedrals.index(d))
     
     
     def get_coordinates(start_end):
         coords = []
         start, end = start_end
         for Nfile, frame in tqdm(enumerate(trajs[start:end])):
-            coords.append(new_config(frame[nconflict_b_indices], frame[nconflict_a_indices], frame[nconflict_d_indices]))
+            coords.append(new_config(frame[:bond_indices], frame[bond_indices:angle_indices], frame[angle_indices:]))
         return coords
 
             
@@ -351,9 +413,9 @@ if __name__ == "__main__":
     
     
     num_cores = cpu_count()
-    # num_cores  = 1
     num_steps = len(trajs) 
-    # num_steps = 10
+    # num_cores = 1
+    # num_steps = 100
     if num_cores > 1:
         num_state_per_state = math.ceil(num_steps / num_cores) 
         p = Pool(num_cores)
@@ -370,25 +432,39 @@ if __name__ == "__main__":
         
     coordinates = np.array(coordinates)
     
+    ref = coordinates[0]
+    new_coors = coordinates.copy()
+    for i in range(1, num_steps):
+        new_coor = remove_com(coordinates[i])
+        new_coor = rotationmatrix(ref, new_coor)
+        new_coors[i] = new_coor
+    
+    
     all_coordinates = np.zeros((num_steps, traj.atoms.n_atoms, 3))
-    all_coordinates[:, atoms.indices, :] = coordinates
+    all_coordinates[:, atoms.indices, :] = new_coors
     traj.load_new(all_coordinates, in_memory=True)
     traj.dimensions = [50, 50, 50, 90, 90, 90]
     
     for frame in tqdm(traj.trajectory):
         traj.atoms.dimensions = [50, 50, 50, 90, 90, 90]
     traj.atoms.select_atoms("protein").write('trp_rama.xtc', frames='all')
-    traj.atoms.select_atoms("protein").select_atoms("type N CW C CA CT NA O CB N2 O2 CN N3 C* OH").write('trp_heavy.xtc', frames='all')
-    traj.atoms.select_atoms("protein").select_atoms("type N CW C CA CT NA O CB N2 O2 CN N3 C* OH").write('trp_heavy.gro')
-    traj = mda.Universe('trp_heavy.gro', 'trp_heavy.xtc')
-    ref = traj.copy()
-    ref.trajectory[0]
-    with mda.Writer('trp1.xtc', atoms.n_atoms)  as w:
-        for i in tqdm(range(num_steps)):
-            traj.trajectory[i]
-            # unaligned_rmsd = rms.rmsd(traj.atoms.positions, ref.atoms.positions, superposition=False)
-            aligner = align.AlignTraj(traj, ref, in_memory=True).run()
-            traj.trajectory[i]
-            # aligned_rmsd = rms.rmsd(traj.atoms.positions, ref.atoms.positions, superposition=False)
-            w.write(atoms)
+    traj.atoms.select_atoms("protein").select_atoms("type N CW C CA CT NA O CB N2 O2 CN N3 C* OH").write('trp_heavy_prediction_mini.xtc', frames=traj.trajectory[::100])
+    # traj.atoms.select_atoms("protein").select_atoms("type N CW C CA CT NA O CB N2 O2 CN N3 C* OH").write('trp_heavy_mini.gro', frames=traj.trajectory[::10])
+    
+    orig_xtc_file = '/workspace/lizt/AI_molucular_dynamics_simulation/Modified_LED-Molecular/Data/TRP/trp_heavy_orig.xtc'
+    traj = mda.Universe(orig_xtc_file)
+    traj.atoms.write('trp_heavy_orig_mini.xtc', frames=traj.trajectory[::100])
+    
+    # traj = mda.Universe('trp_heavy.gro', 'trp_heavy.xtc')
+    # ref = traj.copy()
+    # ref.trajectory[0]
+    # num_steps = 10
+    # with mda.Writer('trp1.xtc', atoms.n_atoms)  as w:
+    #     for ts in traj.trajectory:
+    #         unaligned_rmsd = rms.rmsd(traj.atoms.positions, ref.atoms.positions, superposition=False)
+    #         aligner = align.AlignTraj(traj, ref, in_memory=True).run()
+    #         aligned_rmsd = rms.rmsd(traj.atoms.positions, ref.atoms.positions, superposition=False)
+    #         print(traj.trajectory.time)
+    #         print(unaligned_rmsd, aligned_rmsd)
+    #         w.write(atoms)
         

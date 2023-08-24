@@ -98,7 +98,7 @@ def getRamaClusterAlanine(phi, psi, radius):
 def clusterTrajectoryAlanine(trajBAD, radius=10):
     traj_clustered = []
     # Convert radians to angles
-    psi = trajBAD[:, 28] * 180 / np.pi
+    psi = trajBAD[:, 20] * 180 / np.pi
     phi = trajBAD[:, 21] * 180 / np.pi
     # psi = trajBAD[:, 23] * 180 / np.pi
     # phi = trajBAD[:, 29] * 180 / np.pi
@@ -276,7 +276,7 @@ def computeStateDistributionStatisticsSystemAlanine(state_dist_statistics,
         # phi_targ = traj_targ[:, 29] * 180 / np.pi
         # psi_targ = traj_targ[:, 23] * 180 / np.pi
         phi_targ = traj_targ[:, 21] * 180 / np.pi
-        psi_targ = traj_targ[:, 28] * 180 / np.pi
+        psi_targ = traj_targ[:, 20] * 180 / np.pi
 
         # createRamachandranPlot(phi_targ, psi_targ)
         phi_targ = phi_targ[:, np.newaxis]
@@ -286,7 +286,7 @@ def computeStateDistributionStatisticsSystemAlanine(state_dist_statistics,
         # phi_pred = traj_pred[:, 29] * 180 / np.pi
         # psi_pred = traj_pred[:, 23] * 180 / np.pi
         phi_pred = traj_pred[:, 21] * 180 / np.pi
-        psi_pred = traj_pred[:, 28] * 180 / np.pi
+        psi_pred = traj_pred[:, 20] * 180 / np.pi
         # createRamachandranPlot(phi_pred, psi_pred)
         phi_pred = phi_pred[:, np.newaxis]
         psi_pred = psi_pred[:, np.newaxis]

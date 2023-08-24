@@ -8,4 +8,6 @@ core
 .DS_Store
 *.ipynb
 *.pyc
+*.png
+*.gro
 *rama.xvg*

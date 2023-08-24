@@ -25,6 +25,16 @@ def getLEDParser(parser):
                         help="input_dim",
                         type=int,
                         required=True)
+    parser.add_argument("--batch_norm",
+                        help="use batch normalization or not",
+                        type=int,
+                        required=False,
+                        default=0)
+    parser.add_argument("--clip_grad",
+                        help="use batch normalization or not",
+                        type=int,
+                        required=False,
+                        default=0)
     parser.add_argument("--channels",
                         help="Channels in case input more than 1-D.",
                         type=int,
@@ -154,6 +164,11 @@ def getLEDParser(parser):
                         help='The number of the autoencoder layers',
                         required=False,
                         default=0)
+    parser.add_argument('--AE_layers',
+                        nargs='+',
+                        type=int,
+                        help='The network size of the autoencoder layers',
+                        required=False)
     parser.add_argument("--activation_str_general",
                         help="Activation of Autoencoder/MLP/MDN layers",
                         type=str,
@@ -501,6 +516,11 @@ def getLEDParser(parser):
                         required=False)
     parser.add_argument("--iterative_loss_validation",
                         help="iterative_loss_validation",
+                        type=int,
+                        default=0,
+                        required=False)
+    parser.add_argument("--rnn_iterative_training",
+                        help="rnn_iterative_training",
                         type=int,
                         default=0,
                         required=False)

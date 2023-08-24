@@ -14,6 +14,7 @@ from .KS import utils_plotting_ks as utils_plotting_ks
 from .BMP import utils_plotting_bmp as utils_plotting_bmp
 from .Alanine import utils_plotting_alanine as utils_plotting_alanine
 from .TRP import utils_plotting_trp as utils_plotting_trp
+from .CALMODULIN import utils_plotting_calmodulin
 from .CGW import utils_plotting_cgw as utils_plotting_cgw
 
 
@@ -33,7 +34,9 @@ def plotLatentDynamicsComparisonSystem(model, set_name):
     if model.system_name == "TRP":
         utils_plotting_trp.computeLatentDynamicsDistributionErrorTRP(
             model, set_name)
-
+    if model.system_name == "CALMODULIN":
+        utils_plotting_calmodulin.computeLatentDynamicsDistributionErrorCalmodulin(
+            model, set_name)
     return 0
 
 
@@ -103,7 +106,11 @@ def plotSystem(model, results, set_name, testing_mode):
                 model, results, set_name, testing_mode)
 
         # utils.plotLatentTransitionTimes(model, results, set_name, testing_mode)
-
+    elif model.system_name in ["CALMODULIN"]:
+        utils.plotLatentDynamicsFreeEnergy(model, results, set_name, testing_mode)
+        if model.params["plot_protein_trajectories"]:
+            raise ValueError("Not implemented. But we provided another implementation different with this project's. ")
+        
     elif model.system_name in ["CGW", "CGW50"]:
 
         # utils_plotting_cgw.plot_density_trajectory_CGW(model, results, set_name, testing_mode)

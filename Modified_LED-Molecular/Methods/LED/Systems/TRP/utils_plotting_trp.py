@@ -241,7 +241,7 @@ def computeLatentDynamicsDistributionErrorTRP(model, set_name):
     print(np.shape(lf_latent_states_all))
 
     bounds = []
-    for dim in range(2):
+    for dim in range(np.shape(lf_latent_states_all)[-1]):
         min_ = np.min([
             np.min(tf_latent_states_all[:, dim]),
             np.min(lf_latent_states_all[:, dim])
