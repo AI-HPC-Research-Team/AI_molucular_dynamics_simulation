@@ -72,4 +72,5 @@ bash MDN-ARNN-Local.sh
 ```
 ## References
 [1] Vlachas P R, Zavadlav J, Praprotnik M, et al. Accelerated simulations of molecular systems through learning of effective dynamics[J]. Journal of Chemical Theory and Computation, 2021, 18(1): 538-549.
+
 [2] Code: [LED](https://github.com/cselab/LED-Molecular.git)
